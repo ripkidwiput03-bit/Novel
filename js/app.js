@@ -1,20 +1,16 @@
 /* ============================================
    KABUT DI PELABUHAN LAMA — Novel Online
    Main Application Script — FIXED VERSION
+   With Sinopsis & Copyright Page Support
    ============================================ */
 
 // ============================================================
-// SCHEDULE SYSTEM (harus load duluan supaya fungsi-fungsi 
-// isChapterReleased dll sudah tersedia saat IIFE utama jalan)
+// SCHEDULE SYSTEM
 // ============================================================
 
 (function () {
 
     var FIRST_RELEASE_DATE = new Date(2026, 1, 15, 0, 0, 0);
-    // ↑ 29 Juni 2025, Minggu, 00:00 WIB
-    // Bulan 0-indexed: Januari=0, Juni=5, Juli=6, dst
-    // GANTI TANGGAL INI SESUAI KEBUTUHANMU
-
     var WIB_OFFSET = 7;
 
     var SCHEDULE_CHAPTERS = [
@@ -72,11 +68,8 @@
         var now = getNowWIB();
         var count = 0;
         for (var i = 0; i < SCHEDULE_CHAPTERS.length; i++) {
-            if (now >= getChapterReleaseDate(i)) {
-                count++;
-            } else {
-                break;
-            }
+            if (now >= getChapterReleaseDate(i)) count++;
+            else break;
         }
         return count;
     }
@@ -88,9 +81,7 @@
     function getNextUnreleasedIndex() {
         var now = getNowWIB();
         for (var i = 0; i < SCHEDULE_CHAPTERS.length; i++) {
-            if (now < getChapterReleaseDate(i)) {
-                return i;
-            }
+            if (now < getChapterReleaseDate(i)) return i;
         }
         return -1;
     }
@@ -199,9 +190,7 @@
 
             item.addEventListener('click', function () {
                 if (released) {
-                    if (typeof window.openChapterByNum === 'function') {
-                        window.openChapterByNum(ch.num);
-                    }
+                    if (typeof window.openChapterByNum === 'function') window.openChapterByNum(ch.num);
                 } else {
                     showLockedMessage(ch.num);
                 }
@@ -388,7 +377,6 @@
         updateTOCLockStatus();
     };
 
-    // Tab focus check
     var lastCount = getReleasedCount();
     document.addEventListener('visibilitychange', function () {
         if (!document.hidden) {
@@ -403,7 +391,6 @@
         }
     });
 
-    // Init schedule
     document.addEventListener('DOMContentLoaded', function () {
         buildTimeline();
         updateCountdown();
@@ -417,7 +404,7 @@
 
 
 // ============================================================
-// MAIN APPLICATION
+// MAIN APPLICATION (with Special Pages support)
 // ============================================================
 
 (function () {
@@ -450,8 +437,30 @@
         { num: 23, title: 'Epilog — Pelabuhan Lama', part: 4, partName: 'Bagian 4 — Bruges', file: 'chapters/chapter23.txt' },
     ];
 
+    // ========== SPECIAL PAGES CONFIG ==========
+    const SPECIAL_PAGES = {
+        copyright: {
+            file: 'chapters/copyright.txt',
+            title: 'Hak Cipta & Kredit',
+            partLabel: 'Halaman Awal',
+            icon: '©',
+            headerNum: '©'
+        },
+        sinopsis: {
+            file: 'chapters/sinopsis.txt',
+            title: 'Sinopsis',
+            partLabel: 'Halaman Awal',
+            icon: '📖',
+            headerNum: '📖'
+        }
+    };
+
+    // Navigation order: copyright → sinopsis → chapter1 → chapter2 → ... → chapter23
+    const NAV_ORDER = ['copyright', 'sinopsis', ...chapters.map((_, i) => 'chapter-' + i)];
+
     // ========== STATE ==========
     let currentChapter = 0;
+    let currentView = 'home'; // 'home', 'chapter', 'copyright', 'sinopsis'
     let bookmarks = JSON.parse(localStorage.getItem('kabut_bookmarks') || '[]');
     let lastReadChapter = parseInt(localStorage.getItem('kabut_lastread') || '0');
     let fontSize = parseInt(localStorage.getItem('kabut_fontsize') || '18');
@@ -474,10 +483,10 @@
     const progressBar = $('#reading-progress-bar');
     const backToTopBtn = $('#btn-back-top');
 
-    // Kumpulkan semua landing sections
     const landingSections = [heroSection, aboutSection, charactersSection, scheduleSection].filter(Boolean);
 
     const btnStart = $('#btn-start-reading');
+    const btnSinopsis = $('#btn-read-sinopsis');
     const btnScrollAbout = $('#btn-scroll-about');
     const btnToc = $('#btn-toc');
     const btnTocClose = $('#toc-close');
@@ -499,6 +508,7 @@
     const nextChapterTitle = $('#next-chapter-title');
     const bookmarkIcon = $('#bookmark-icon');
     const themeIcon = $('#theme-icon');
+    const chapterNav = $('#chapter-nav');
 
     // ========== INITIALIZATION ==========
     function init() {
@@ -506,8 +516,10 @@
         applyFontSize(fontSize);
         buildTOC();
         setupEventListeners();
+        setupSpecialPageLinks();
         createHeroParticles();
         simulateLoading();
+        console.log('📖 Kabut di Pelabuhan Lama — App initialized');
     }
 
     // ========== LOADING SCREEN ==========
@@ -559,11 +571,8 @@
             const a = document.createElement('a');
             a.innerHTML = `<span class="ch-num">${ch.num}.</span> ${ch.title}`;
             a.addEventListener('click', () => {
-                // Cek rilis
                 if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(index)) {
-                    if (typeof window.showLockedMessage === 'function') {
-                        window.showLockedMessage(ch.num);
-                    }
+                    if (typeof window.showLockedMessage === 'function') window.showLockedMessage(ch.num);
                     return;
                 }
                 openChapter(index);
@@ -578,12 +587,34 @@
         updateBookmarkList();
     }
 
+    // ========== SPECIAL PAGE TOC LINKS ==========
+    function setupSpecialPageLinks() {
+        // Handle TOC links with data-page attribute
+        const tocPageLinks = $$('.toc-link[data-page]');
+        tocPageLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const pageType = this.getAttribute('data-page');
+                if (pageType && SPECIAL_PAGES[pageType]) {
+                    openSpecialPage(pageType);
+                    closeTOC();
+                }
+            });
+        });
+
+        // Handle hero sinopsis button
+        if (btnSinopsis) {
+            btnSinopsis.addEventListener('click', () => {
+                openSpecialPage('sinopsis');
+            });
+        }
+    }
+
     // ========== EVENT LISTENERS ==========
     function setupEventListeners() {
         // Start reading
         if (btnStart) {
             btnStart.addEventListener('click', () => {
-                // Cek ada yang sudah rilis
                 if (typeof window.getReleasedCount === 'function' && window.getReleasedCount() === 0) {
                     if (typeof window.showLockedMessage === 'function') window.showLockedMessage(1);
                     return;
@@ -591,7 +622,6 @@
 
                 let startIndex = lastReadChapter || 0;
 
-                // Pastikan chapter yang mau dibuka sudah rilis
                 if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(startIndex)) {
                     const released = window.getReleasedCount();
                     startIndex = released > 0 ? released - 1 : 0;
@@ -623,21 +653,14 @@
         // Chapter nav — Previous
         if (btnPrev) {
             btnPrev.addEventListener('click', () => {
-                if (currentChapter > 0) openChapter(currentChapter - 1);
+                navigatePrev();
             });
         }
 
-        // Chapter nav — Next (dengan cek rilis)
+        // Chapter nav — Next
         if (btnNext) {
             btnNext.addEventListener('click', () => {
-                if (currentChapter < chapters.length - 1) {
-                    const nextIndex = currentChapter + 1;
-                    if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(nextIndex)) {
-                        if (typeof window.showLockedMessage === 'function') window.showLockedMessage(chapters[nextIndex].num);
-                        return;
-                    }
-                    openChapter(nextIndex);
-                }
+                navigateNext();
             });
         }
 
@@ -662,6 +685,45 @@
 
         // Keyboard
         document.addEventListener('keydown', handleKeyboard);
+    }
+
+    // ========== NAVIGATION (Prev/Next) ==========
+    function navigatePrev() {
+        if (currentView === 'chapter') {
+            if (currentChapter > 0) {
+                openChapter(currentChapter - 1);
+            } else {
+                // Chapter 1 → go to sinopsis
+                openSpecialPage('sinopsis');
+            }
+        } else if (currentView === 'sinopsis') {
+            openSpecialPage('copyright');
+        } else if (currentView === 'copyright') {
+            // Already first page, do nothing or go home
+            goToHome();
+        }
+    }
+
+    function navigateNext() {
+        if (currentView === 'copyright') {
+            openSpecialPage('sinopsis');
+        } else if (currentView === 'sinopsis') {
+            // Go to chapter 1 if released
+            if (typeof window.getReleasedCount === 'function' && window.getReleasedCount() > 0) {
+                openChapter(0);
+            } else {
+                if (typeof window.showLockedMessage === 'function') window.showLockedMessage(1);
+            }
+        } else if (currentView === 'chapter') {
+            if (currentChapter < chapters.length - 1) {
+                const nextIndex = currentChapter + 1;
+                if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(nextIndex)) {
+                    if (typeof window.showLockedMessage === 'function') window.showLockedMessage(chapters[nextIndex].num);
+                    return;
+                }
+                openChapter(nextIndex);
+            }
+        }
     }
 
     // ========== SCROLL HANDLER ==========
@@ -697,42 +759,314 @@
     function handleKeyboard(e) {
         if (!readerSection || !readerSection.classList.contains('active')) return;
 
-        if (e.key === 'ArrowLeft' && currentChapter > 0) {
-            openChapter(currentChapter - 1);
-        } else if (e.key === 'ArrowRight' && currentChapter < chapters.length - 1) {
-            const nextIndex = currentChapter + 1;
-            if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(nextIndex)) return;
-            openChapter(nextIndex);
+        if (e.key === 'ArrowLeft') {
+            navigatePrev();
+        } else if (e.key === 'ArrowRight') {
+            navigateNext();
         } else if (e.key === 'Escape') {
             if (tocSidebar && tocSidebar.classList.contains('active')) closeTOC();
         }
     }
 
-    // ========== OPEN CHAPTER ==========
-    async function openChapter(index) {
-        if (index < 0 || index >= chapters.length) return;
-
-        // Cek rilis
-        if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(index)) {
-            if (typeof window.showLockedMessage === 'function') window.showLockedMessage(chapters[index].num);
-            return;
-        }
-
-        currentChapter = index;
-        const ch = chapters[index];
-
-        // ★ HIDE semua landing sections
+    // ========== SHOW READER VIEW ==========
+    function showReaderView() {
         landingSections.forEach(section => {
             section.style.display = 'none';
         });
 
-        // ★ SHOW reader
         if (readerSection) {
             readerSection.style.display = 'block';
             readerSection.classList.add('active');
         }
 
         if (mainNav) mainNav.classList.add('visible');
+    }
+
+    // ========== OPEN SPECIAL PAGE (Sinopsis / Copyright) ==========
+    async function openSpecialPage(pageType) {
+        const pageConfig = SPECIAL_PAGES[pageType];
+        if (!pageConfig) return;
+
+        currentView = pageType;
+        showReaderView();
+
+        // Remove old special page classes, add new ones
+        if (readerSection) {
+            readerSection.classList.remove('special-page-copyright', 'special-page-sinopsis');
+            readerSection.classList.add('special-page-' + pageType);
+        }
+
+        // Update header
+        if (chapterPartLabel) chapterPartLabel.textContent = pageConfig.partLabel;
+        if (chapterNumber) chapterNumber.textContent = pageConfig.headerNum;
+        if (chapterTitle) chapterTitle.textContent = pageConfig.title;
+        if (chapterReadTime) chapterReadTime.textContent = '';
+
+        // Hide bookmark button on special pages
+        if (btnBookmark) btnBookmark.style.display = 'none';
+
+        // Show loading
+        if (chapterContent) {
+            chapterContent.innerHTML = `
+                <div class="chapter-loading">
+                    <div class="chapter-loading-spinner"></div>
+                    <p>Memuat halaman...</p>
+                </div>
+            `;
+        }
+
+        // Load content
+        try {
+            const response = await fetch(pageConfig.file);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const text = await response.text();
+
+            renderSpecialPageContent(text, pageType);
+
+            // Read time
+            if (chapterReadTime && chapterContent) {
+                const wordCount = chapterContent.textContent.split(/\s+/).length;
+                const minutes = Math.max(1, Math.round(wordCount / 200));
+                chapterReadTime.textContent = `± ${minutes} menit baca`;
+            }
+        } catch (err) {
+            console.error('Error loading special page:', err);
+            if (chapterContent) {
+                chapterContent.innerHTML = `
+                    <div class="chapter-error">
+                        <div class="chapter-error-icon">⚠️</div>
+                        <h3>Gagal Memuat Halaman</h3>
+                        <p>File <code>${pageConfig.file}</code> tidak ditemukan.</p>
+                        <p class="chapter-error-hint">Pastikan file tersedia di folder <code>chapters/</code></p>
+                        <p class="chapter-error-detail"><small>${err.message}</small></p>
+                        <button class="chapter-error-btn" onclick="location.reload()">Coba Lagi</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Update navigation buttons
+        updateSpecialPageNav(pageType);
+
+        // Update TOC active state
+        updateTOCActiveSpecial(pageType);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+        // ========== RENDER SPECIAL PAGE (UPDATED) ==========
+    function renderSpecialPageContent(rawText, pageType) {
+        if (!chapterContent) return;
+
+        var lines = rawText.split('\n');
+        var html = '<div class="special-page-content special-page-content-' + pageType + '">';
+        var i = 0;
+
+        while (i < lines.length) {
+            var trimmed = lines[i].trim();
+
+            // Empty line — skip
+            if (trimmed === '') { i++; continue; }
+
+            // Ornamental double line ═══
+            if (/^═{3,}$/.test(trimmed)) {
+                html += '<div class="ornamental-line">═══════════════════</div>';
+                i++; continue;
+            }
+
+            // Horizontal rule ---
+            if (trimmed === '---' || trimmed === '***' || trimmed === '* * *') {
+                html += '<hr class="special-divider">';
+                i++; continue;
+            }
+
+            // Decorative separator ✦ ✦ ✦
+            if (/^[✦\*·•]{1,5}(\s+[✦\*·•]{1,5}){1,5}$/.test(trimmed)) {
+                html += '<div class="decorative-separator">' + trimmed + '</div>';
+                i++; continue;
+            }
+
+            // Blockquote > text
+            if (trimmed.startsWith('> ')) {
+                var quoteLines = [];
+                while (i < lines.length && lines[i].trim().startsWith('> ')) {
+                    quoteLines.push(lines[i].trim().substring(2));
+                    i++;
+                }
+                var quoteHtml = quoteLines.map(function(l) {
+                    return formatInlineText(l);
+                }).join('<br>');
+                html += '<blockquote class="special-blockquote">' + quoteHtml + '</blockquote>';
+                continue;
+            }
+
+            // ## Subheading (Markdown-style)
+            if (trimmed.startsWith('## ')) {
+                html += '<h3 class="special-subheading">' + formatInlineText(trimmed.substring(3)) + '</h3>';
+                i++; continue;
+            }
+
+            // ALL CAPS heading (but not ©, not —, must have letters, min 3 chars)
+            if (trimmed === trimmed.toUpperCase() && trimmed.length > 2 &&
+                !trimmed.startsWith('©') && !trimmed.startsWith('—') &&
+                !trimmed.startsWith('"') && /[A-Z]/.test(trimmed)) {
+                html += '<h3 class="special-heading">' + toTitleCase(trimmed) + '</h3>';
+                i++; continue;
+            }
+
+            // Credit line (key : value) — copyright page
+            if (pageType === 'copyright' && trimmed.includes(' : ')) {
+                var colonIdx = trimmed.indexOf(' : ');
+                var key = trimmed.substring(0, colonIdx).trim();
+                var val = trimmed.substring(colonIdx + 3).trim();
+                if (key.length <= 30 && val.length > 0) {
+                    html += '<div class="credit-line-row">' +
+                            '<span class="credit-row-label">' + key + '</span>' +
+                            '<span class="credit-row-value">' + val + '</span>' +
+                            '</div>';
+                    i++; continue;
+                }
+            }
+
+            // Regular paragraph — collect until break marker
+            var paragraph = trimmed;
+            i++;
+
+            while (i < lines.length) {
+                var nextLine = lines[i].trim();
+
+                // Stop conditions
+                if (nextLine === '') break;
+                if (/^═{3,}$/.test(nextLine)) break;
+                if (nextLine === '---' || nextLine === '***' || nextLine === '* * *') break;
+                if (/^[✦\*·•]{1,5}(\s+[✦\*·•]{1,5}){1,5}$/.test(nextLine)) break;
+                if (nextLine.startsWith('> ')) break;
+                if (nextLine.startsWith('## ')) break;
+                if (nextLine === nextLine.toUpperCase() && nextLine.length > 2 &&
+                    !nextLine.startsWith('©') && !nextLine.startsWith('"') && /[A-Z]/.test(nextLine)) break;
+                if (pageType === 'copyright' && nextLine.includes(' : ')) {
+                    var ci = nextLine.indexOf(' : ');
+                    var k = nextLine.substring(0, ci).trim();
+                    var v = nextLine.substring(ci + 3).trim();
+                    if (k.length <= 30 && v.length > 0) break;
+                }
+
+                paragraph += ' ' + nextLine;
+                i++;
+            }
+
+            // Determine paragraph class
+            var pClass = 'special-paragraph';
+            if (paragraph.startsWith('©')) pClass += ' copyright-notice';
+            if (paragraph.startsWith('"') || paragraph.startsWith('\u201C')) pClass += ' special-quote';
+
+            // Format inline (bold, italic, etc)
+            paragraph = formatInlineText(paragraph);
+
+            html += '<p class="' + pClass + '">' + paragraph + '</p>';
+        }
+
+        html += '</div>';
+        chapterContent.innerHTML = html;
+    }
+
+    function formatInlineTextSpecial(text) {
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/--/g, '—');
+        return text;
+    }
+
+    function toTitleCase(str) {
+        return str.toLowerCase().replace(/(?:^|\s)\S/g, function (a) {
+            return a.toUpperCase();
+        });
+    }
+
+    function updateSpecialPageNav(pageType) {
+        if (pageType === 'copyright') {
+            // Prev: none (first page)
+            if (btnPrev) {
+                btnPrev.disabled = true;
+                btnPrev.style.display = 'none';
+            }
+            if (prevChapterTitle) prevChapterTitle.textContent = '—';
+
+            // Next: sinopsis
+            if (btnNext) {
+                btnNext.disabled = false;
+                btnNext.style.display = '';
+            }
+            if (nextChapterTitle) nextChapterTitle.textContent = 'Sinopsis';
+
+        } else if (pageType === 'sinopsis') {
+            // Prev: copyright
+            if (btnPrev) {
+                btnPrev.disabled = false;
+                btnPrev.style.display = '';
+            }
+            if (prevChapterTitle) prevChapterTitle.textContent = 'Hak Cipta & Kredit';
+
+            // Next: chapter 1 (if released)
+            const releasedCount = typeof window.getReleasedCount === 'function' ? window.getReleasedCount() : 0;
+            if (releasedCount > 0) {
+                if (btnNext) {
+                    btnNext.disabled = false;
+                    btnNext.style.display = '';
+                }
+                if (nextChapterTitle) nextChapterTitle.textContent = 'Ch.1: ' + chapters[0].title;
+            } else {
+                if (btnNext) {
+                    btnNext.disabled = false;
+                    btnNext.style.display = '';
+                }
+                if (nextChapterTitle) nextChapterTitle.textContent = '🔒 ' + chapters[0].title;
+            }
+        }
+    }
+
+    function updateTOCActiveSpecial(pageType) {
+        // Remove active from all chapter items
+        $$('.toc-list li').forEach((li) => {
+            li.classList.remove('active');
+        });
+
+        // Add active to special page link
+        $$('.toc-link[data-page]').forEach(link => {
+            const parent = link.closest('li');
+            if (parent) {
+                if (link.getAttribute('data-page') === pageType) {
+                    parent.classList.add('active');
+                } else {
+                    parent.classList.remove('active');
+                }
+            }
+        });
+    }
+
+    // ========== OPEN CHAPTER ==========
+    async function openChapter(index) {
+        if (index < 0 || index >= chapters.length) return;
+
+        if (typeof window.isChapterReleased === 'function' && !window.isChapterReleased(index)) {
+            if (typeof window.showLockedMessage === 'function') window.showLockedMessage(chapters[index].num);
+            return;
+        }
+
+        currentChapter = index;
+        currentView = 'chapter';
+
+        showReaderView();
+
+        // Remove special page classes
+        if (readerSection) {
+            readerSection.classList.remove('special-page-copyright', 'special-page-sinopsis');
+        }
+
+        // Show bookmark button
+        if (btnBookmark) btnBookmark.style.display = '';
+
+        const ch = chapters[index];
 
         // Update header
         if (chapterPartLabel) chapterPartLabel.textContent = ch.partName;
@@ -755,10 +1089,16 @@
             renderChapterContent(text);
         } catch (err) {
             if (chapterContent) {
-                chapterContent.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 3rem 0;">
-                    Gagal memuat chapter. Pastikan file <code>${ch.file}</code> tersedia.<br><br>
-                    <small>${err.message}</small>
-                </p>`;
+                chapterContent.innerHTML = `
+                    <div class="chapter-error">
+                        <div class="chapter-error-icon">⚠️</div>
+                        <h3>Gagal Memuat Chapter</h3>
+                        <p>File <code>${ch.file}</code> tidak ditemukan.</p>
+                        <p class="chapter-error-hint">Pastikan file chapter sudah ada di folder <code>chapters/</code></p>
+                        <p class="chapter-error-detail"><small>${err.message}</small></p>
+                        <button class="chapter-error-btn" onclick="location.reload()">Coba Lagi</button>
+                    </div>
+                `;
             }
         }
 
@@ -780,9 +1120,7 @@
 
     async function loadChapterFile(filePath) {
         const response = await fetch(filePath);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         return await response.text();
     }
 
@@ -791,15 +1129,11 @@
 
         const lines = rawText.split('\n');
         let html = '';
-        let inDialogue = false;
 
         lines.forEach((line) => {
             const trimmed = line.trim();
 
-            if (trimmed === '') {
-                if (inDialogue) { html += '</div>'; inDialogue = false; }
-                return;
-            }
+            if (trimmed === '') return;
 
             if (trimmed === '***' || trimmed === '---' || trimmed === '* * *') {
                 html += '<div class="separator">· · ·</div>';
@@ -819,8 +1153,6 @@
             html += `<p>${formatInlineText(trimmed)}</p>`;
         });
 
-        if (inDialogue) html += '</div>';
-
         chapterContent.innerHTML = html;
     }
 
@@ -832,29 +1164,34 @@
     }
 
     function updateChapterNav() {
-        // Previous
+        // Prev button
         if (btnPrev) {
             if (currentChapter > 0) {
                 btnPrev.disabled = false;
+                btnPrev.style.display = '';
                 if (prevChapterTitle) prevChapterTitle.textContent = chapters[currentChapter - 1].title;
             } else {
-                btnPrev.disabled = true;
-                if (prevChapterTitle) prevChapterTitle.textContent = '—';
+                // Chapter 1: prev goes to sinopsis
+                btnPrev.disabled = false;
+                btnPrev.style.display = '';
+                if (prevChapterTitle) prevChapterTitle.textContent = 'Sinopsis';
             }
         }
 
-        // Next
+        // Next button
         if (btnNext) {
             if (currentChapter < chapters.length - 1) {
                 const nextIndex = currentChapter + 1;
                 const released = typeof window.isChapterReleased === 'function' ? window.isChapterReleased(nextIndex) : true;
                 btnNext.disabled = false;
+                btnNext.style.display = '';
                 if (nextChapterTitle) {
                     nextChapterTitle.textContent = released ? chapters[nextIndex].title : '🔒 ' + chapters[nextIndex].title;
                 }
             } else {
                 btnNext.disabled = true;
-                if (nextChapterTitle) nextChapterTitle.textContent = '—';
+                btnNext.style.display = '';
+                if (nextChapterTitle) nextChapterTitle.textContent = 'Tamat';
             }
         }
     }
@@ -864,10 +1201,18 @@
             li.classList.remove('active');
             if (parseInt(li.dataset.index) === currentChapter) li.classList.add('active');
         });
+
+        // Remove active from special page links
+        $$('.toc-link[data-page]').forEach(link => {
+            const parent = link.closest('li');
+            if (parent) parent.classList.remove('active');
+        });
     }
 
     // ========== BOOKMARK ==========
     function toggleBookmark() {
+        if (currentView !== 'chapter') return; // Only bookmark chapters
+
         const chNum = chapters[currentChapter].num;
         const idx = bookmarks.indexOf(chNum);
         if (idx >= 0) bookmarks.splice(idx, 1);
@@ -879,6 +1224,13 @@
 
     function updateBookmarkState() {
         if (!bookmarkIcon || !btnBookmark) return;
+
+        if (currentView !== 'chapter') {
+            btnBookmark.style.display = 'none';
+            return;
+        }
+
+        btnBookmark.style.display = '';
         const chNum = chapters[currentChapter].num;
         const isBookmarked = bookmarks.includes(chNum);
         bookmarkIcon.textContent = isBookmarked ? '★' : '☆';
@@ -947,13 +1299,13 @@
 
     // ========== GO TO HOME ==========
     function goToHome() {
-        // Hide reader
+        currentView = 'home';
+
         if (readerSection) {
-            readerSection.classList.remove('active');
+            readerSection.classList.remove('active', 'special-page-copyright', 'special-page-sinopsis');
             readerSection.style.display = 'none';
         }
 
-        // Show ALL landing sections
         landingSections.forEach(section => {
             section.style.display = '';
         });
@@ -963,18 +1315,17 @@
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Refresh schedule
-        if (typeof window.refreshSchedule === 'function') {
-            window.refreshSchedule();
-        }
+        if (typeof window.refreshSchedule === 'function') window.refreshSchedule();
     }
 
-    // ★ Expose openChapter ke window agar schedule system bisa akses
+    // ★ Expose openChapter & openSpecialPage ke window
     window.openChapterByNum = function (chapterNum) {
         const index = chapterNum - 1;
-        if (index >= 0 && index < chapters.length) {
-            openChapter(index);
-        }
+        if (index >= 0 && index < chapters.length) openChapter(index);
+    };
+
+    window.openSpecialPage = function (pageType) {
+        openSpecialPage(pageType);
     };
 
     // ========== START ==========
