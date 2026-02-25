@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kabut di Pelabuhan Lama</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-fog"></div>
+            <div class="loading-fog loading-fog-2"></div>
+            <div class="loading-text">
+                <span class="loading-title">Kabut di Pelabuhan Lama</span>
+                <div class="loading-bar">
+                    <div class="loading-bar-fill"></div>
+                </div>
+                <span class="loading-subtitle">Memuat cerita...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav id="main-nav">
+        <div class="nav-inner">
+            <div class="nav-brand" id="nav-brand">
+                <span class="nav-icon">☁</span>
+                <span class="nav-title-text">Kabut di Pelabuhan Lama</span>
+            </div>
+            <div class="nav-controls">
+                <button class="nav-btn" id="btn-font-decrease" title="Perkecil Font">A-</button>
+                <button class="nav-btn" id="btn-font-increase" title="Perbesar Font">A+</button>
+                <button class="nav-btn" id="btn-theme" title="Mode Gelap/Terang">
+                    <span id="theme-icon">🌙</span>
+                </button>
+                <button class="nav-btn" id="btn-toc" title="Daftar Isi">☰</button>
+            </div>
+        </div>
+        <div class="reading-progress">
+            <div class="reading-progress-bar" id="reading-progress-bar"></div>
+        </div>
+    </nav>
+
+    <!-- TABLE OF CONTENTS SIDEBAR -->
+    <div id="toc-overlay" class="toc-overlay"></div>
+    <aside id="toc-sidebar" class="toc-sidebar">
+        <div class="toc-header">
+            <h2>Daftar Isi</h2>
+            <button class="toc-close" id="toc-close">✕</button>
+        </div>
+        <div class="toc-meta">
+            <p class="toc-author">Sebuah Novel</p>
+            <p class="toc-info">23 Chapter • Porto, Sintra, Lisboa, Bruges</p>
+        </div>
+        <div class="toc-parts">
+            <div class="toc-part">
+                <h3 class="toc-part-title">Bagian 1 — Porto</h3>
+                <ul class="toc-list" id="toc-list-part1"></ul>
+            </div>
+            <div class="toc-part">
+                <h3 class="toc-part-title">Bagian 2 — Sintra</h3>
+                <ul class="toc-list" id="toc-list-part2"></ul>
+            </div>
+            <div class="toc-part">
+                <h3 class="toc-part-title">Bagian 3 — Lisboa</h3>
+                <ul class="toc-list" id="toc-list-part3"></ul>
+            </div>
+            <div class="toc-part">
+                <h3 class="toc-part-title">Bagian 4 — Bruges</h3>
+                <ul class="toc-list" id="toc-list-part4"></ul>
+            </div>
+        </div>
+        <div class="toc-bookmark-section">
+            <h3>🔖 Bookmark</h3>
+            <ul class="toc-list" id="bookmark-list">
+                <li class="toc-empty">Belum ada bookmark</li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- HERO / LANDING PAGE -->
+    <section id="hero-section" class="page-section">
+        <div class="hero-fog"></div>
+        <div class="hero-fog hero-fog-2"></div>
+        <div class="hero-fog hero-fog-3"></div>
+        <div class="hero-particles" id="hero-particles"></div>
+
+        <!-- BOOK COVER -->
+        <div class="book-cover-wrapper">
+            <div class="book-cover-glow"></div>
+            <div class="book-cover">
+                <div class="book-spine"></div>
+                <div class="book-front">
+                    <img src="images/cover.jpg" alt="Cover" class="cover-image" id="cover-image">
+                    <div class="cover-fallback" id="cover-fallback">
+                        <div class="cover-fog-effect"></div>
+                        <div class="cover-fog-effect cover-fog-2"></div>
+                        <div class="cover-text">
+                            <span class="cover-genre">Novel</span>
+                            <div class="cover-title-block">
+                                <span class="cover-title-main">Kabut</span>
+                                <span class="cover-title-sub">di</span>
+                                <span class="cover-title-main">Pelabuhan</span>
+                                <span class="cover-title-main">Lama</span>
+                            </div>
+                            <div class="cover-divider"></div>
+                            <div class="cover-locations">Porto · Sintra · Lisboa · Bruges</div>
+                            <div class="cover-year">2000 — 2001</div>
+                        </div>
+                        <div class="cover-bottom-strip">
+                            <span>Romance • Misteri • Psychological Drama</span>
+                        </div>
+                    </div>
+                    <div class="book-shine"></div>
+                </div>
+                <div class="book-pages">
+                    <div class="book-page"></div>
+                    <div class="book-page"></div>
+                    <div class="book-page"></div>
+                    <div class="book-page"></div>
+                    <div class="book-page"></div>
+                </div>
+                <div class="book-back"></div>
+            </div>
+            <div class="book-shadow"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-badge">Novel • Romance • Misteri • Psychological Drama</div>
+            <h1 class="hero-title">
+                <span class="hero-title-line">Kabut</span>
+                <span class="hero-title-line hero-title-di">di</span>
+                <span class="hero-title-line">Pelabuhan Lama</span>
+            </h1>
+            <div class="hero-divider">
+                <span class="hero-divider-line"></span>
+                <span class="hero-divider-icon">☁</span>
+                <span class="hero-divider-line"></span>
+            </div>
+            <p class="hero-quote">
+                "Kalau kamu tahu orang yang kamu cintai hidup di atas kebohongan besar — 
+                dan kebohongan itu dia bangun bukan untuk menipu kamu, tapi untuk bertahan hidup — 
+                apa kamu masih bisa mencintainya?"
+            </p>
+            <div class="hero-setting">
+                <span>Porto</span><span class="hero-dot">·</span>
+                <span>Sintra</span><span class="hero-dot">·</span>
+                <span>Lisboa</span><span class="hero-dot">·</span>
+                <span>Bruges</span><span class="hero-dot">·</span>
+                <span>2000–2001</span>
+            </div>
+            <button class="hero-cta" id="btn-start-reading">
+                <span>Mulai Membaca</span>
+                <span class="cta-arrow">→</span>
+            </button>
+            <button class="hero-cta hero-cta-secondary" id="btn-scroll-about">
+                Tentang Novel Ini
+            </button>
+        </div>
+        <div class="hero-scroll-hint">
+            <span>Scroll ke bawah</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about-section" class="page-section">
+        <div class="about-inner">
+            <div class="about-header">
+                <span class="section-label">Tentang Novel</span>
+                <h2>Sebuah Cerita Tentang Cinta, Kebohongan, dan Pelabuhan Tua</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-card-icon">🎨</div>
+                    <h3>Arka Wisesa</h3>
+                    <p>Pelukis muda dari Bandung yang mencari "suara"-nya di kota tua Porto.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-card-icon">🌙</div>
+                    <h3>Inês Ferreira</h3>
+                    <p>Kurator galeri dengan kecantikan yang menghantui dan rahasia yang terlalu dalam.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-card-icon">🌫️</div>
+                    <h3>Misteri Álvaro Mendes</h3>
+                    <p>Seniman terkenal yang menghilang tujuh tahun lalu. Lukisannya menyimpan pesan tersembunyi.</p>
+                </div>
+            </div>
+            <div class="about-locations">
+                <h3>Empat Kota, Satu Kebenaran</h3>
+                <div class="location-timeline">
+                    <div class="location-item">
+                        <div class="location-dot"></div>
+                        <div class="location-info"><h4>Porto</h4><p>Pertemuan dan jatuh cinta di tepi Sungai Douro</p></div>
+                    </div>
+                    <div class="location-item">
+                        <div class="location-dot"></div>
+                        <div class="location-info"><h4>Sintra</h4><p>Penggalian masa lalu di kota berkabut</p></div>
+                    </div>
+                    <div class="location-item">
+                        <div class="location-dot"></div>
+                        <div class="location-info"><h4>Lisboa</h4><p>Konfrontasi dan rahasia yang mulai retak</p></div>
+                    </div>
+                    <div class="location-item">
+                        <div class="location-dot"></div>
+                        <div class="location-info"><h4>Bruges</h4><p>Pengungkapan besar di kota kanal yang tenang</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CHARACTER GALLERY SECTION -->
+    <section id="characters-section" class="page-section">
+        <div class="characters-inner">
+            <div class="characters-header">
+                <span class="section-label">Karakter</span>
+                <h2>Mereka yang Terjebak dalam Kabut</h2>
+                <p class="characters-subtitle">Setiap orang punya rahasia. Beberapa menyimpannya untuk melindungi diri sendiri.</p>
+            </div>
+            <div class="characters-main-grid">
+                <!-- ARKA -->
+                <div class="character-card character-card-main" data-character="arka">
+                    <div class="character-card-inner">
+                        <div class="character-image-wrapper">
+                            <div class="character-image-frame">
+                                <img src="images/characters/arka.jpg" alt="Arka Wisesa" class="character-image" loading="lazy">
+                                <div class="character-image-overlay"></div>
+                                <div class="character-image-grain"></div>
+                            </div>
+                            <div class="character-image-glow"></div>
+                            <div class="character-badge">Protagonis</div>
+                        </div>
+                        <div class="character-info">
+                            <div class="character-name-block">
+                                <h3 class="character-name">Arka Wisesa</h3>
+                                <span class="character-age">25 tahun</span>
+                            </div>
+                            <p class="character-origin"><span class="origin-icon">📍</span> Bandung → Porto</p>
+                            <p class="character-role">Pelukis · Mahasiswa Seni Rupa</p>
+                            <div class="character-divider"></div>
+                            <p class="character-desc">Kalem, pengamat, pelukis yang belum menemukan "suara"-nya sendiri.</p>
+                            <div class="character-traits">
+                                <span class="trait">Pendiam</span>
+                                <span class="trait">Pengamat</span>
+                                <span class="trait">Terluka</span>
+                            </div>
+                            <button class="character-detail-btn" data-target="arka-detail">
+                                <span>Selengkapnya</span><span class="detail-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="character-detail-panel" id="arka-detail">
+                        <div class="detail-content">
+                            <div class="detail-section"><h4>Latar Belakang</h4><p>Ibunya meninggal waktu remaja. Hubungan sama ayahnya dingin.</p></div>
+                            <div class="detail-quote"><blockquote>"Gue bisa ngelukis apapun. Tapi gue nggak bisa ngelukis sesuatu yang gue rasain."</blockquote></div>
+                        </div>
+                        <button class="detail-close-btn">✕ Tutup</button>
+                    </div>
+                </div>
+                <!-- INÊS -->
+                <div class="character-card character-card-main" data-character="ines">
+                    <div class="character-card-inner">
+                        <div class="character-image-wrapper">
+                            <div class="character-image-frame">
+                                <img src="images/characters/ines.jpg" alt="Inês Ferreira" class="character-image" loading="lazy">
+                                <div class="character-image-overlay"></div>
+                                <div class="character-image-grain"></div>
+                            </div>
+                            <div class="character-image-glow ines-glow"></div>
+                            <div class="character-badge badge-mystery">Misterius</div>
+                        </div>
+                        <div class="character-info">
+                            <div class="character-name-block">
+                                <h3 class="character-name">Inês Ferreira</h3>
+                                <span class="character-age">27 tahun</span>
+                            </div>
+                            <p class="character-origin"><span class="origin-icon">📍</span> Sintra → Porto</p>
+                            <p class="character-role">Kurator Junior · Galeri Ribeira</p>
+                            <div class="character-divider"></div>
+                            <p class="character-desc">Cantik dengan cara yang menghantui. Mata hijau keabu-abuan, selalu pakai anting bulan sabit.</p>
+                            <div class="character-traits">
+                                <span class="trait">Cerdas</span>
+                                <span class="trait">Memikat</span>
+                                <span class="trait">Tertutup</span>
+                            </div>
+                            <button class="character-detail-btn" data-target="ines-detail">
+                                <span>Selengkapnya</span><span class="detail-arrow">→</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="character-detail-panel" id="ines-detail">
+                        <div class="detail-content">
+                            <div class="detail-section"><h4>Koneksi Misterius</h4><p>Punya hubungan yang belum jelas dengan Álvaro Mendes.</p></div>
+                            <div class="detail-quote"><blockquote>"Ada hal-hal yang kalau kamu tahu, kamu akan berharap tidak pernah bertanya."</blockquote></div>
+                        </div>
+                        <button class="detail-close-btn">✕ Tutup</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Supporting Characters -->
+            <div class="characters-support-header">
+                <h3>Karakter Pendukung</h3>
+                <div class="support-header-line"></div>
+            </div>
+            <div class="characters-support-grid">
+                <div class="character-card character-card-support" data-character="helena">
+                    <div class="character-support-inner">
+                        <div class="character-image-wrapper character-image-small">
+                            <div class="character-image-frame"><img src="images/characters/helena.jpg" alt="Helena" class="character-image" loading="lazy"><div class="character-image-overlay"></div></div>
+                        </div>
+                        <div class="character-info">
+                            <h3 class="character-name">Helena</h3>
+                            <p class="character-role">Penjaga rahasia di Sintra</p>
+                            <p class="character-desc-short">Tahu lebih banyak dari yang dia katakan tentang masa lalu Inês.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="character-card character-card-support" data-character="rafael">
+                    <div class="character-support-inner">
+                        <div class="character-image-wrapper character-image-small">
+                            <div class="character-image-frame"><img src="images/characters/rafael.jpg" alt="Rafael" class="character-image" loading="lazy"><div class="character-image-overlay"></div></div>
+                        </div>
+                        <div class="character-info">
+                            <h3 class="character-name">Rafael</h3>
+                            <p class="character-role">Orang asing dari Lisboa</p>
+                            <p class="character-desc-short">Bukan antagonis, bukan sekutu. Hanya orang yang mau kebenaran.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="character-card character-card-support character-card-ghost" data-character="alvaro">
+                    <div class="character-support-inner">
+                        <div class="character-image-wrapper character-image-small">
+                            <div class="character-image-frame"><img src="images/characters/alvaro.jpg" alt="Álvaro Mendes" class="character-image" loading="lazy"><div class="character-image-overlay overlay-ghost"></div></div>
+                            <div class="character-badge badge-ghost">Hilang</div>
+                        </div>
+                        <div class="character-info">
+                            <h3 class="character-name">Álvaro Mendes</h3>
+                            <p class="character-role">Seniman · Menghilang 1993</p>
+                            <p class="character-desc-short">Kunci seluruh misteri dalam novel ini.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="character-card character-card-support" data-character="sari">
+                    <div class="character-support-inner">
+                        <div class="character-image-wrapper character-image-small">
+                            <div class="character-image-frame"><img src="images/characters/sari.jpg" alt="Sari" class="character-image" loading="lazy"><div class="character-image-overlay"></div></div>
+                        </div>
+                        <div class="character-info">
+                            <h3 class="character-name">Sari</h3>
+                            <p class="character-role">Teman Arka · Amsterdam</p>
+                            <p class="character-desc-short">Anchor Arka ke dunia nyata. Menyimpan perasaan yang tak terungkap.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCHEDULE SECTION -->
+    <section id="schedule-section" class="page-section">
+        <div class="schedule-inner">
+            <div class="schedule-header">
+                <span class="section-label">Jadwal Rilis</span>
+                <h2>Jadwal Upload Chapter</h2>
+                <p class="schedule-subtitle">Setiap chapter baru terbuka otomatis setiap <strong>hari Minggu, pukul 00:00 WIB</strong>.</p>
+            </div>
+            <div class="countdown-wrapper" id="countdown-wrapper">
+                <div class="countdown-card">
+                    <div class="countdown-glow"></div>
+                    <div class="countdown-header">
+                        <span class="countdown-label">Chapter Berikutnya Terbuka Dalam</span>
+                        <h3 class="countdown-chapter-name" id="countdown-chapter-name">—</h3>
+                    </div>
+                    <div class="countdown-timer" id="countdown-timer">
+                        <div class="countdown-unit">
+                            <span class="countdown-number" id="countdown-days">00</span>
+                            <span class="countdown-text">Hari</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-number" id="countdown-hours">00</span>
+                            <span class="countdown-text">Jam</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-number" id="countdown-minutes">00</span>
+                            <span class="countdown-text">Menit</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-number" id="countdown-seconds">00</span>
+                            <span class="countdown-text">Detik</span>
+                        </div>
+                    </div>
+                    <div class="countdown-all-released" id="countdown-all-released" style="display:none;">
+                        <span class="all-released-icon">🎉</span>
+                        <p>Semua chapter sudah dirilis!</p>
+                    </div>
+                    <div class="countdown-progress-row">
+                        <span class="countdown-progress-label" id="progress-label">0 / 23 Chapter</span>
+                        <div class="countdown-progress-bar">
+                            <div class="countdown-progress-fill" id="countdown-progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="schedule-timeline-wrapper">
+                <div class="schedule-filter">
+                    <button class="schedule-filter-btn active" data-filter="all">Semua</button>
+                    <button class="schedule-filter-btn" data-filter="released">Sudah Rilis</button>
+                    <button class="schedule-filter-btn" data-filter="upcoming">Akan Datang</button>
+                </div>
+                <div class="schedule-timeline" id="schedule-timeline"></div>
+            </div>
+            <div class="schedule-notify">
+                <div class="notify-card">
+                    <div class="notify-icon">🔔</div>
+                    <div class="notify-content">
+                        <h4>Jangan Sampai Ketinggalan</h4>
+                        <p>Aktifkan notifikasi browser saat chapter baru dirilis.</p>
+                    </div>
+                    <button class="notify-btn" id="btn-notify">
+                        <span class="notify-btn-text" id="notify-btn-text">Aktifkan Notifikasi</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- READER SECTION -->
+    <section id="reader-section" class="page-section" style="display: none;">
+        <div class="reader-inner">
+            <div class="chapter-header" id="chapter-header">
+                <button class="back-to-home-btn" id="btn-back-home">← Kembali ke Beranda</button>
+                <span class="chapter-part-label" id="chapter-part-label">Bagian 1 — Porto</span>
+                <span class="chapter-number" id="chapter-number">Chapter 1</span>
+                <h2 class="chapter-title" id="chapter-title">Sungai yang Tidak Pernah Diam</h2>
+                <div class="chapter-meta">
+                    <span id="chapter-read-time">± 8 menit baca</span>
+                    <button class="bookmark-btn" id="btn-bookmark" title="Bookmark">
+                        <span id="bookmark-icon">☆</span> Bookmark
+                    </button>
+                </div>
+            </div>
+            <article class="chapter-content" id="chapter-content">
+                <div class="chapter-loading">
+                    <div class="chapter-loading-spinner"></div>
+                    <p>Memuat chapter...</p>
+                </div>
+            </article>
+            <div class="chapter-nav" id="chapter-nav">
+                <button class="chapter-nav-btn" id="btn-prev-chapter" disabled>
+                    <span class="nav-arrow">←</span>
+                    <span class="nav-label"><small>Sebelumnya</small><span id="prev-chapter-title">—</span></span>
+                </button>
+                <button class="chapter-nav-btn" id="btn-next-chapter">
+                    <span class="nav-label"><small>Selanjutnya</small><span id="next-chapter-title">—</span></span>
+                    <span class="nav-arrow">→</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="main-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-title">Kabut di Pelabuhan Lama</span>
+                <p>Sebuah novel tentang cinta, kebohongan, dan pelabuhan tua.</p>
+            </div>
+            <div class="footer-quote">
+                <p>"Semakin dalam cintanya, semakin dalam juga ia tenggelam ke dalam labirin kebohongan."</p>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 — Dibuat dengan ☁ dan secangkir port wine</p>
+            </div>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="btn-back-top" title="Kembali ke atas">↑</button>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
