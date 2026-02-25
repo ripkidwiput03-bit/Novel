@@ -10,7 +10,7 @@
 
 (function () {
 
-    var FIRST_RELEASE_DATE = new Date(2026, 1, 10, 0, 0, 0);
+    var FIRST_RELEASE_DATE = new Date(2026, 1, 15, 0, 0, 0);
     // ↑ 29 Juni 2025, Minggu, 00:00 WIB
     // Bulan 0-indexed: Januari=0, Juni=5, Juli=6, dst
     // GANTI TANGGAL INI SESUAI KEBUTUHANMU
