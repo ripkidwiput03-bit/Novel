@@ -1544,3 +1544,383 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+// ============================================================
+// MUSIC PLAYER
+// ============================================================
+
+(function () {
+
+    // ★★★ DAFTAR LAGU — GANTI DENGAN FILE MUSIKMU ★★★
+    var playlist = [
+        {
+            title: "Kabut Pagi di Porto",
+            artist: "Ambient",
+            src: "music/track1.mp3"
+        },
+        {
+            title: "Sungai Douro",
+            artist: "Piano",
+            src: "music/track2.mp3"
+        },
+        {
+            title: "Malam di Ribeira",
+            artist: "Guitar",
+            src: "music/track3.mp3"
+        },
+        {
+            title: "Fado untuk Inês",
+            artist: "Fado",
+            src: "music/track4.mp3"
+        },
+        {
+            title: "Kabut Sintra",
+            artist: "Ambient",
+            src: "music/track5.mp3"
+        },
+        {
+            title: "Kereta ke Bruges",
+            artist: "Piano",
+            src: "music/track6.mp3"
+        }
+    ];
+
+    // State
+    var audio = new Audio();
+    var currentTrack = 0;
+    var isPlaying = false;
+    var isPanelOpen = false;
+    var isPlaylistOpen = false;
+    var isShuffle = false;
+    var repeatMode = 0; // 0=off, 1=all, 2=one
+    var volume = 0.8;
+    var isSeeking = false;
+
+    // DOM
+    var player = document.getElementById('music-player');
+    var toggle = document.getElementById('music-toggle');
+    var panel = document.getElementById('music-panel');
+    var disc = document.getElementById('music-disc');
+    var songTitle = document.getElementById('music-song-title');
+    var songArtist = document.getElementById('music-song-artist');
+    var playBtn = document.getElementById('music-play');
+    var playIcon = document.getElementById('music-play-icon');
+    var prevBtn = document.getElementById('music-prev');
+    var nextBtn = document.getElementById('music-next');
+    var progressBar = document.getElementById('music-progress-bar');
+    var progressFill = document.getElementById('music-progress-fill');
+    var currentTimeEl = document.getElementById('music-current-time');
+    var durationEl = document.getElementById('music-duration');
+    var volBtn = document.getElementById('music-vol-btn');
+    var volIcon = document.getElementById('music-vol-icon');
+    var volumeBar = document.getElementById('music-volume-bar');
+    var volumeFill = document.getElementById('music-volume-fill');
+    var playlistToggle = document.getElementById('music-playlist-toggle');
+    var playlistEl = document.getElementById('music-playlist');
+    var playlistCount = document.getElementById('playlist-count');
+    var shuffleBtn = document.getElementById('music-shuffle');
+    var repeatBtn = document.getElementById('music-repeat');
+
+    // ========== INIT ==========
+    function initPlayer() {
+        if (playlist.length === 0) {
+            if (player) player.style.display = 'none';
+            return;
+        }
+
+        audio.volume = volume;
+        buildPlaylist();
+        loadTrack(0, false);
+        bindEvents();
+
+        // Load saved volume
+        try {
+            var savedVol = parseFloat(localStorage.getItem('kabut_music_vol'));
+            if (!isNaN(savedVol)) {
+                volume = savedVol;
+                audio.volume = volume;
+                updateVolumeUI();
+            }
+        } catch (e) {}
+    }
+
+    // ========== BUILD PLAYLIST ==========
+    function buildPlaylist() {
+        if (!playlistEl) return;
+        playlistEl.innerHTML = '';
+        if (playlistCount) playlistCount.textContent = playlist.length;
+
+        playlist.forEach(function (track, index) {
+            var li = document.createElement('li');
+            li.setAttribute('data-index', index);
+            li.innerHTML =
+                '<span class="pl-num">' + (index + 1) + '.</span>' +
+                '<span class="pl-playing-icon">♪</span>' +
+                '<span>' + track.title + '</span>';
+
+            li.addEventListener('click', function () {
+                loadTrack(index, true);
+            });
+
+            playlistEl.appendChild(li);
+        });
+    }
+
+    // ========== LOAD TRACK ==========
+    function loadTrack(index, autoplay) {
+        if (index < 0 || index >= playlist.length) return;
+
+        currentTrack = index;
+        var track = playlist[index];
+
+        audio.src = track.src;
+        audio.load();
+
+        if (songTitle) songTitle.textContent = track.title;
+        if (songArtist) songArtist.textContent = track.artist;
+
+        // Update playlist active
+        if (playlistEl) {
+            var items = playlistEl.querySelectorAll('li');
+            items.forEach(function (li) { li.classList.remove('active'); });
+            if (items[index]) items[index].classList.add('active');
+        }
+
+        // Reset progress
+        if (progressFill) progressFill.style.width = '0%';
+        if (currentTimeEl) currentTimeEl.textContent = '0:00';
+        if (durationEl) durationEl.textContent = '0:00';
+
+        if (autoplay) {
+            audio.play().then(function () {
+                setPlayingState(true);
+            }).catch(function (e) {
+                console.log('Autoplay blocked:', e.message);
+            });
+        }
+    }
+
+    // ========== PLAY / PAUSE ==========
+    function togglePlay() {
+        if (!audio.src || audio.src === window.location.href) {
+            loadTrack(0, true);
+            return;
+        }
+
+        if (isPlaying) {
+            audio.pause();
+            setPlayingState(false);
+        } else {
+            audio.play().then(function () {
+                setPlayingState(true);
+            }).catch(function (e) {
+                console.log('Play blocked:', e.message);
+            });
+        }
+    }
+
+    function setPlayingState(playing) {
+        isPlaying = playing;
+        if (playIcon) playIcon.textContent = playing ? '⏸' : '▶';
+
+        if (player) {
+            player.classList.toggle('playing', playing);
+            player.classList.toggle('paused', !playing);
+            if (!playing) player.classList.remove('playing');
+        }
+    }
+
+    // ========== NEXT / PREV ==========
+    function nextTrack() {
+        var next;
+        if (isShuffle) {
+            next = Math.floor(Math.random() * playlist.length);
+            while (next === currentTrack && playlist.length > 1) {
+                next = Math.floor(Math.random() * playlist.length);
+            }
+        } else {
+            next = currentTrack + 1;
+            if (next >= playlist.length) {
+                if (repeatMode >= 1) next = 0;
+                else { setPlayingState(false); return; }
+            }
+        }
+        loadTrack(next, true);
+    }
+
+    function prevTrack() {
+        if (audio.currentTime > 3) {
+            audio.currentTime = 0;
+            return;
+        }
+        var prev = currentTrack - 1;
+        if (prev < 0) prev = playlist.length - 1;
+        loadTrack(prev, true);
+    }
+
+    // ========== TIME FORMAT ==========
+    function formatTime(sec) {
+        if (isNaN(sec) || !isFinite(sec)) return '0:00';
+        var m = Math.floor(sec / 60);
+        var s = Math.floor(sec % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // ========== UPDATE PROGRESS ==========
+    function updateProgress() {
+        if (isSeeking) return;
+        if (!audio.duration) return;
+
+        var pct = (audio.currentTime / audio.duration) * 100;
+        if (progressFill) progressFill.style.width = pct + '%';
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+    }
+
+    // ========== SEEK ==========
+    function seekTo(e) {
+        var rect = progressBar.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var pct = Math.max(0, Math.min(1, x / rect.width));
+        audio.currentTime = pct * audio.duration;
+        if (progressFill) progressFill.style.width = (pct * 100) + '%';
+    }
+
+    // ========== VOLUME ==========
+    function setVolume(e) {
+        var rect = volumeBar.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        volume = Math.max(0, Math.min(1, x / rect.width));
+        audio.volume = volume;
+        updateVolumeUI();
+        try { localStorage.setItem('kabut_music_vol', volume); } catch (ex) {}
+    }
+
+    function toggleMute() {
+        if (audio.volume > 0) {
+            audio._prevVol = audio.volume;
+            audio.volume = 0;
+            volume = 0;
+        } else {
+            volume = audio._prevVol || 0.8;
+            audio.volume = volume;
+        }
+        updateVolumeUI();
+    }
+
+    function updateVolumeUI() {
+        if (volumeFill) volumeFill.style.width = (volume * 100) + '%';
+        if (volIcon) {
+            if (volume === 0) volIcon.textContent = '🔇';
+            else if (volume < 0.4) volIcon.textContent = '🔈';
+            else if (volume < 0.7) volIcon.textContent = '🔉';
+            else volIcon.textContent = '🔊';
+        }
+    }
+
+    // ========== SHUFFLE / REPEAT ==========
+    function toggleShuffle() {
+        isShuffle = !isShuffle;
+        if (shuffleBtn) shuffleBtn.classList.toggle('active', isShuffle);
+    }
+
+    function toggleRepeat() {
+        repeatMode = (repeatMode + 1) % 3;
+        if (repeatBtn) {
+            repeatBtn.classList.toggle('active', repeatMode > 0);
+            var span = repeatBtn.querySelector('span');
+            if (span) {
+                if (repeatMode === 0) span.textContent = '🔁';
+                else if (repeatMode === 1) span.textContent = '🔁';
+                else span.textContent = '🔂';
+            }
+        }
+    }
+
+    // ========== EVENT BINDINGS ==========
+    function bindEvents() {
+
+        // Toggle panel
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                isPanelOpen = !isPanelOpen;
+                if (panel) panel.classList.toggle('open', isPanelOpen);
+            });
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!player) return;
+            if (!player.contains(e.target) && isPanelOpen) {
+                isPanelOpen = false;
+                if (panel) panel.classList.remove('open');
+            }
+        });
+
+        // Play / Pause
+        if (playBtn) playBtn.addEventListener('click', togglePlay);
+
+        // Next / Prev
+        if (nextBtn) nextBtn.addEventListener('click', nextTrack);
+        if (prevBtn) prevBtn.addEventListener('click', prevTrack);
+
+        // Audio events
+        audio.addEventListener('timeupdate', updateProgress);
+
+        audio.addEventListener('loadedmetadata', function () {
+            if (durationEl) durationEl.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('ended', function () {
+            if (repeatMode === 2) {
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                nextTrack();
+            }
+        });
+
+        audio.addEventListener('error', function () {
+            console.warn('Music file not found:', playlist[currentTrack].src);
+            if (songTitle) songTitle.textContent = '⚠ File tidak ditemukan';
+        });
+
+        // Progress seek
+        if (progressBar) {
+            progressBar.addEventListener('click', seekTo);
+
+            progressBar.addEventListener('mousedown', function () { isSeeking = true; });
+            document.addEventListener('mousemove', function (e) {
+                if (isSeeking) seekTo(e);
+            });
+            document.addEventListener('mouseup', function () { isSeeking = false; });
+        }
+
+        // Volume
+        if (volumeBar) volumeBar.addEventListener('click', setVolume);
+        if (volBtn) volBtn.addEventListener('click', toggleMute);
+
+        // Playlist toggle
+        if (playlistToggle) {
+            playlistToggle.addEventListener('click', function () {
+                isPlaylistOpen = !isPlaylistOpen;
+                if (playlistEl) playlistEl.classList.toggle('open', isPlaylistOpen);
+            });
+        }
+
+        // Shuffle & Repeat
+        if (shuffleBtn) shuffleBtn.addEventListener('click', toggleShuffle);
+        if (repeatBtn) repeatBtn.addEventListener('click', toggleRepeat);
+
+        // Keyboard: Space to play/pause (only when not typing)
+        document.addEventListener('keydown', function (e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space' && isPanelOpen) {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+    }
+
+    // ========== START ==========
+    document.addEventListener('DOMContentLoaded', initPlayer);
+
+})();
