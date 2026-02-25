@@ -500,7 +500,98 @@
             </div>
         </div>
     </section>
+<!-- ===== MUSIC PLAYER ===== -->
+<div class="music-player" id="music-player">
 
+    <!-- Toggle Button (selalu terlihat) -->
+    <button class="music-toggle" id="music-toggle" title="Music Player">
+        <span class="music-toggle-icon" id="music-toggle-icon">♪</span>
+        <span class="music-equalizer" id="music-equalizer">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+        </span>
+    </button>
+
+    <!-- Expanded Player Panel -->
+    <div class="music-panel" id="music-panel">
+
+        <!-- Album Art / Visual -->
+        <div class="music-visual">
+            <div class="music-disc" id="music-disc">
+                <div class="disc-outer">
+                    <div class="disc-inner">
+                        <span class="disc-icon">☁</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Song Info -->
+        <div class="music-info">
+            <p class="music-now-playing">Sedang Diputar</p>
+            <h4 class="music-song-title" id="music-song-title">—</h4>
+            <p class="music-song-artist" id="music-song-artist">—</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="music-progress-wrapper">
+            <span class="music-time" id="music-current-time">0:00</span>
+            <div class="music-progress" id="music-progress-bar">
+                <div class="music-progress-fill" id="music-progress-fill"></div>
+                <div class="music-progress-handle" id="music-progress-handle"></div>
+            </div>
+            <span class="music-time" id="music-duration">0:00</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="music-controls">
+            <button class="music-ctrl-btn" id="music-prev" title="Sebelumnya">
+                <span>⏮</span>
+            </button>
+            <button class="music-ctrl-btn music-play-btn" id="music-play" title="Play/Pause">
+                <span id="music-play-icon">▶</span>
+            </button>
+            <button class="music-ctrl-btn" id="music-next" title="Selanjutnya">
+                <span>⏭</span>
+            </button>
+        </div>
+
+        <!-- Volume -->
+        <div class="music-volume-wrapper">
+            <button class="music-vol-btn" id="music-vol-btn" title="Mute/Unmute">
+                <span id="music-vol-icon">🔊</span>
+            </button>
+            <div class="music-volume-bar" id="music-volume-bar">
+                <div class="music-volume-fill" id="music-volume-fill"></div>
+            </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="music-playlist-wrapper">
+            <button class="music-playlist-toggle" id="music-playlist-toggle">
+                <span>☰</span> Playlist
+                <span class="playlist-count" id="playlist-count">0</span>
+            </button>
+            <ul class="music-playlist" id="music-playlist">
+                <!-- di-generate oleh JS -->
+            </ul>
+        </div>
+
+        <!-- Repeat & Shuffle -->
+        <div class="music-extras">
+            <button class="music-extra-btn" id="music-shuffle" title="Acak">
+                <span>🔀</span>
+            </button>
+            <button class="music-extra-btn" id="music-repeat" title="Ulangi">
+                <span>🔁</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+<!-- ===== END MUSIC PLAYER ===== -->
     <!-- FOOTER -->
       <footer id="main-footer">
         <div class="footer-inner">
