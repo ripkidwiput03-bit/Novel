@@ -6524,3 +6524,636 @@ body.zen-active {
         transition: opacity 0.2s ease;
     }
 }
+/* ============================================================
+   FONT PICKER
+   ============================================================ */
+
+/* --- Trigger Button --- */
+.font-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(196, 168, 124, 0.08);
+    border: 1px solid rgba(196, 168, 124, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.font-picker-btn:hover {
+    background: rgba(196, 168, 124, 0.15);
+    border-color: rgba(196, 168, 124, 0.3);
+    box-shadow: 0 0 12px rgba(196, 168, 124, 0.08);
+}
+
+.font-picker-icon {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgba(196, 168, 124, 0.7);
+    transition: color 0.3s ease;
+}
+
+.font-picker-btn:hover .font-picker-icon {
+    color: rgba(196, 168, 124, 1);
+}
+
+[data-theme="dark"] .font-picker-btn {
+    background: rgba(196, 168, 124, 0.05);
+    border-color: rgba(196, 168, 124, 0.1);
+}
+
+[data-theme="dark"] .font-picker-icon {
+    color: rgba(196, 168, 124, 0.5);
+}
+
+[data-theme="dark"] .font-picker-btn:hover {
+    background: rgba(196, 168, 124, 0.1);
+    border-color: rgba(196, 168, 124, 0.2);
+}
+
+[data-theme="dark"] .font-picker-btn:hover .font-picker-icon {
+    color: rgba(196, 168, 124, 0.9);
+}
+
+/* --- Overlay --- */
+.font-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.font-picker-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- Panel --- */
+.font-picker-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 400px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: #f5f0e8;
+    border: 1px solid rgba(196, 168, 124, 0.15);
+    border-radius: 18px;
+    padding: 28px;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .font-picker-panel {
+    background: #1e1b17;
+    border-color: rgba(196, 168, 124, 0.08);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.font-picker-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Scrollbar */
+.font-picker-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.font-picker-panel::-webkit-scrollbar-thumb {
+    background: rgba(196, 168, 124, 0.2);
+    border-radius: 4px;
+}
+
+/* --- Header --- */
+.fp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.fp-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #2a2520;
+    margin: 0;
+}
+
+[data-theme="dark"] .fp-title {
+    color: #e8e0d4;
+}
+
+.fp-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(196, 168, 124, 0.06);
+    border: 1px solid rgba(196, 168, 124, 0.1);
+    color: rgba(196, 168, 124, 0.5);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.fp-close:hover {
+    background: rgba(196, 168, 124, 0.15);
+    color: rgba(196, 168, 124, 0.9);
+}
+
+/* --- Sections --- */
+.fp-section {
+    margin-bottom: 22px;
+}
+
+.fp-section:last-of-type {
+    margin-bottom: 16px;
+}
+
+.fp-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(196, 168, 124, 0.5);
+    margin-bottom: 10px;
+}
+
+/* ============================================================
+   FONT FAMILY OPTIONS
+   ============================================================ */
+
+.fp-font-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.fp-font-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: rgba(196, 168, 124, 0.03);
+    border: 1px solid rgba(196, 168, 124, 0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.fp-font-btn:hover {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.15);
+}
+
+.fp-font-btn.active {
+    background: rgba(196, 168, 124, 0.1);
+    border-color: rgba(196, 168, 124, 0.3);
+    box-shadow: 0 0 16px rgba(196, 168, 124, 0.06);
+}
+
+[data-theme="dark"] .fp-font-btn {
+    background: rgba(196, 168, 124, 0.02);
+    border-color: rgba(196, 168, 124, 0.06);
+}
+
+[data-theme="dark"] .fp-font-btn.active {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.2);
+}
+
+.fp-font-preview {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2a2520;
+    line-height: 1;
+}
+
+[data-theme="dark"] .fp-font-preview {
+    color: #e8e0d4;
+}
+
+.fp-preview-serif { font-family: 'Playfair Display', 'Lora', Georgia, serif; }
+.fp-preview-sans { font-family: 'Inter', -apple-system, Helvetica, sans-serif; }
+.fp-preview-mono { font-family: 'Courier New', 'Fira Code', monospace; }
+
+.fp-font-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #5a4e40;
+}
+
+[data-theme="dark"] .fp-font-name {
+    color: #a89a8a;
+}
+
+.fp-font-btn.active .fp-font-name {
+    color: rgba(196, 168, 124, 0.9);
+}
+
+.fp-font-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.55rem;
+    color: #8b7f70;
+    letter-spacing: 0.3px;
+}
+
+[data-theme="dark"] .fp-font-desc {
+    color: #6e6258;
+}
+
+/* ============================================================
+   FONT SIZE CONTROLS
+   ============================================================ */
+
+.fp-size-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fp-size-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(196, 168, 124, 0.06);
+    border: 1px solid rgba(196, 168, 124, 0.1);
+    color: rgba(196, 168, 124, 0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.fp-size-btn:hover {
+    background: rgba(196, 168, 124, 0.15);
+    border-color: rgba(196, 168, 124, 0.25);
+    color: rgba(196, 168, 124, 1);
+}
+
+[data-theme="dark"] .fp-size-btn {
+    background: rgba(196, 168, 124, 0.04);
+    border-color: rgba(196, 168, 124, 0.08);
+    color: rgba(196, 168, 124, 0.4);
+}
+
+.fp-size-slider-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Range Slider */
+.fp-size-slider {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(196, 168, 124, 0.12);
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.fp-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(196, 168, 124, 0.8);
+    border: 2px solid #f5f0e8;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.fp-size-slider::-webkit-slider-thumb:hover {
+    background: rgba(196, 168, 124, 1);
+    transform: scale(1.2);
+    box-shadow: 0 2px 10px rgba(196, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .fp-size-slider {
+    background: rgba(196, 168, 124, 0.06);
+}
+
+[data-theme="dark"] .fp-size-slider::-webkit-slider-thumb {
+    border-color: #1e1b17;
+}
+
+/* Firefox */
+.fp-size-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(196, 168, 124, 0.8);
+    border: 2px solid #f5f0e8;
+    cursor: pointer;
+}
+
+.fp-size-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: rgba(196, 168, 124, 0.5);
+}
+
+/* ============================================================
+   LINE HEIGHT OPTIONS
+   ============================================================ */
+
+.fp-line-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.fp-line-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    background: rgba(196, 168, 124, 0.03);
+    border: 1px solid rgba(196, 168, 124, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    color: #5a4e40;
+}
+
+.fp-line-btn:hover {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.15);
+}
+
+.fp-line-btn.active {
+    background: rgba(196, 168, 124, 0.1);
+    border-color: rgba(196, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .fp-line-btn {
+    background: rgba(196, 168, 124, 0.02);
+    border-color: rgba(196, 168, 124, 0.06);
+    color: #a89a8a;
+}
+
+[data-theme="dark"] .fp-line-btn.active {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.2);
+}
+
+.fp-line-icon {
+    font-size: 1.1rem;
+    color: rgba(196, 168, 124, 0.5);
+}
+
+.fp-line-btn.active .fp-line-icon {
+    color: rgba(196, 168, 124, 0.9);
+}
+
+/* ============================================================
+   TEXT WIDTH OPTIONS
+   ============================================================ */
+
+.fp-width-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.fp-width-btn {
+    padding: 10px 8px;
+    background: rgba(196, 168, 124, 0.03);
+    border: 1px solid rgba(196, 168, 124, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #5a4e40;
+    text-align: center;
+}
+
+.fp-width-btn:hover {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.15);
+}
+
+.fp-width-btn.active {
+    background: rgba(196, 168, 124, 0.1);
+    border-color: rgba(196, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .fp-width-btn {
+    background: rgba(196, 168, 124, 0.02);
+    border-color: rgba(196, 168, 124, 0.06);
+    color: #a89a8a;
+}
+
+[data-theme="dark"] .fp-width-btn.active {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.2);
+}
+
+/* ============================================================
+   TEXT ALIGN OPTIONS
+   ============================================================ */
+
+.fp-align-options {
+    display: flex;
+    gap: 8px;
+}
+
+.fp-align-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(196, 168, 124, 0.03);
+    border: 1px solid rgba(196, 168, 124, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    color: #5a4e40;
+    text-align: center;
+}
+
+.fp-align-btn:hover {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.15);
+}
+
+.fp-align-btn.active {
+    background: rgba(196, 168, 124, 0.1);
+    border-color: rgba(196, 168, 124, 0.3);
+}
+
+[data-theme="dark"] .fp-align-btn {
+    background: rgba(196, 168, 124, 0.02);
+    border-color: rgba(196, 168, 124, 0.06);
+    color: #a89a8a;
+}
+
+[data-theme="dark"] .fp-align-btn.active {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.2);
+}
+
+/* ============================================================
+   PREVIEW BOX
+   ============================================================ */
+
+.fp-preview-box {
+    padding: 16px 18px;
+    background: rgba(196, 168, 124, 0.03);
+    border: 1px solid rgba(196, 168, 124, 0.08);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .fp-preview-box {
+    background: rgba(196, 168, 124, 0.02);
+    border-color: rgba(196, 168, 124, 0.06);
+}
+
+.fp-preview-box p {
+    font-family: 'Lora', serif;
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: #3d362e;
+    margin: 0;
+}
+
+[data-theme="dark"] .fp-preview-box p {
+    color: #a89a8a;
+}
+
+/* ============================================================
+   RESET BUTTON
+   ============================================================ */
+
+.fp-footer {
+    text-align: center;
+    padding-top: 8px;
+}
+
+.fp-reset-btn {
+    padding: 8px 20px;
+    background: none;
+    border: 1px solid rgba(196, 168, 124, 0.12);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(196, 168, 124, 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fp-reset-btn:hover {
+    background: rgba(196, 168, 124, 0.08);
+    border-color: rgba(196, 168, 124, 0.25);
+    color: rgba(196, 168, 124, 0.9);
+}
+
+/* ============================================================
+   READER FONT CLASSES (Applied to #chapter-content)
+   ============================================================ */
+
+/* Font Families */
+.reader-font-serif { font-family: 'Lora', Georgia, 'Times New Roman', serif !important; }
+.reader-font-sans { font-family: 'Inter', -apple-system, 'Segoe UI', Helvetica, sans-serif !important; }
+.reader-font-mono { font-family: 'Courier New', 'Fira Mono', 'Consolas', monospace !important; }
+
+.reader-font-serif p,
+.reader-font-serif blockquote { font-family: 'Lora', Georgia, serif !important; }
+
+.reader-font-sans p,
+.reader-font-sans blockquote { font-family: 'Inter', -apple-system, sans-serif !important; }
+
+.reader-font-mono p,
+.reader-font-mono blockquote { font-family: 'Courier New', 'Fira Mono', monospace !important; }
+
+/* Line Heights */
+.reader-line-compact p { line-height: 1.6 !important; }
+.reader-line-normal p { line-height: 1.9 !important; }
+.reader-line-relaxed p { line-height: 2.3 !important; }
+
+/* Text Width */
+.reader-width-narrow .reader-inner { max-width: 560px !important; }
+.reader-width-normal .reader-inner { max-width: 720px !important; }
+.reader-width-wide .reader-inner { max-width: 900px !important; }
+
+/* Text Align */
+.reader-align-left p { text-align: left !important; }
+.reader-align-justify p { text-align: justify !important; text-justify: inter-word !important; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 480px) {
+    .font-picker-panel {
+        width: calc(100vw - 24px);
+        padding: 20px;
+        border-radius: 14px;
+        max-height: calc(100vh - 32px);
+    }
+
+    .fp-font-options {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .fp-font-btn {
+        padding: 10px 6px;
+    }
+
+    .fp-font-preview {
+        font-size: 1.3rem;
+    }
+
+    .fp-font-desc {
+        display: none;
+    }
+}
