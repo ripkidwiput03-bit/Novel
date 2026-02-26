@@ -1544,6 +1544,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
 // ============================================================
 // MUSIC PLAYER
 // ============================================================
@@ -1555,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', function () {
         {
             title: "Kabut Pagi di Porto",
             artist: "Ambient",
-            src: "https://drive.google.com/uc?export=download&id=1NOQc9GTmquMa527kuvTUeXcyu0oHLIC6"
+            src: "music/track1.mp3"
         },
         {
             title: "Sungai Douro",
