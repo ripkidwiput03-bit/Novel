@@ -1721,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function setPlayingState(playing) {
         isPlaying = playing;
-        if (playIcon) playIcon.textContent = playing ? '⏸' : '▶';
+        if (playIcon) playIcon.textContent = playing ? '▐▐' : '▶';
 
         if (player) {
             player.classList.toggle('playing', playing);
