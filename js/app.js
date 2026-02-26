@@ -2184,3 +2184,288 @@ document.addEventListener('DOMContentLoaded', function () {
     window.closeZenMode = closeZenMode;
 
 })();
+// ============================================================
+// FONT PICKER
+// ============================================================
+
+(function () {
+
+    // ========== DEFAULT SETTINGS ==========
+    var defaults = {
+        font: 'serif',
+        size: 18,
+        line: 'normal',
+        width: 'normal',
+        align: 'justify'
+    };
+
+    // ========== STATE ==========
+    var settings = {};
+
+    // ========== DOM ==========
+    var btnOpen = null;
+    var panel = null;
+    var overlay = null;
+    var btnClose = null;
+    var btnReset = null;
+    var sizeSlider = null;
+    var sizeValue = null;
+    var sizeDecrease = null;
+    var sizeIncrease = null;
+    var previewBox = null;
+    var readerSection = null;
+    var chapterContent = null;
+
+    // ========== LOAD SETTINGS ==========
+    function loadSettings() {
+        try {
+            var saved = JSON.parse(localStorage.getItem('kabut_font_settings'));
+            if (saved) {
+                settings = {
+                    font: saved.font || defaults.font,
+                    size: saved.size || defaults.size,
+                    line: saved.line || defaults.line,
+                    width: saved.width || defaults.width,
+                    align: saved.align || defaults.align
+                };
+            } else {
+                settings = Object.assign({}, defaults);
+            }
+        } catch (e) {
+            settings = Object.assign({}, defaults);
+        }
+    }
+
+    // ========== SAVE SETTINGS ==========
+    function saveSettings() {
+        try {
+            localStorage.setItem('kabut_font_settings', JSON.stringify(settings));
+        } catch (e) {}
+    }
+
+    // ========== APPLY SETTINGS ==========
+    function applySettings() {
+        readerSection = document.getElementById('reader-section');
+        chapterContent = document.getElementById('chapter-content');
+
+        if (!readerSection) return;
+
+        // Remove old classes
+        var removeClasses = [];
+        readerSection.classList.forEach(function (cls) {
+            if (cls.startsWith('reader-font-') || 
+                cls.startsWith('reader-line-') || 
+                cls.startsWith('reader-width-') || 
+                cls.startsWith('reader-align-')) {
+                removeClasses.push(cls);
+            }
+        });
+        removeClasses.forEach(function (cls) {
+            readerSection.classList.remove(cls);
+        });
+
+        // Apply new classes
+        readerSection.classList.add('reader-font-' + settings.font);
+        readerSection.classList.add('reader-line-' + settings.line);
+        readerSection.classList.add('reader-width-' + settings.width);
+        readerSection.classList.add('reader-align-' + settings.align);
+
+        // Apply font size
+        document.documentElement.style.setProperty('--font-size-base', settings.size + 'px');
+        if (chapterContent) {
+            chapterContent.style.fontSize = settings.size + 'px';
+        }
+
+        // Update preview
+        updatePreview();
+
+        // Update active buttons
+        updateActiveStates();
+    }
+
+    // ========== UPDATE PREVIEW ==========
+    function updatePreview() {
+        if (!previewBox) return;
+
+        var p = previewBox.querySelector('p');
+        if (!p) return;
+
+        // Font family
+        switch (settings.font) {
+            case 'serif': p.style.fontFamily = "'Lora', Georgia, serif"; break;
+            case 'sans': p.style.fontFamily = "'Inter', -apple-system, sans-serif"; break;
+            case 'mono': p.style.fontFamily = "'Courier New', monospace"; break;
+        }
+
+        // Size (scaled down for preview)
+        p.style.fontSize = (settings.size * 0.85) + 'px';
+
+        // Line height
+        switch (settings.line) {
+            case 'compact': p.style.lineHeight = '1.6'; break;
+            case 'normal': p.style.lineHeight = '1.9'; break;
+            case 'relaxed': p.style.lineHeight = '2.3'; break;
+        }
+
+        // Align
+        p.style.textAlign = settings.align === 'justify' ? 'justify' : 'left';
+    }
+
+    // ========== UPDATE ACTIVE STATES ==========
+    function updateActiveStates() {
+        // Font buttons
+        document.querySelectorAll('.fp-font-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-font') === settings.font);
+        });
+
+        // Line buttons
+        document.querySelectorAll('.fp-line-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-line') === settings.line);
+        });
+
+        // Width buttons
+        document.querySelectorAll('.fp-width-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-width') === settings.width);
+        });
+
+        // Align buttons
+        document.querySelectorAll('.fp-align-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-align') === settings.align);
+        });
+
+        // Size slider
+        if (sizeSlider) sizeSlider.value = settings.size;
+        if (sizeValue) sizeValue.textContent = settings.size + 'px';
+    }
+
+    // ========== OPEN / CLOSE ==========
+    function openPanel() {
+        if (panel) panel.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePanel() {
+        if (panel) panel.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // ========== RESET ==========
+    function resetSettings() {
+        settings = Object.assign({}, defaults);
+        saveSettings();
+        applySettings();
+        updateActiveStates();
+    }
+
+    // ========== BIND EVENTS ==========
+    function bindEvents() {
+        // Open
+        if (btnOpen) btnOpen.addEventListener('click', openPanel);
+
+        // Close
+        if (btnClose) btnClose.addEventListener('click', closePanel);
+        if (overlay) overlay.addEventListener('click', closePanel);
+
+        // ESC key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && panel && panel.classList.contains('open')) {
+                closePanel();
+            }
+        });
+
+        // Font family
+        document.querySelectorAll('.fp-font-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                settings.font = this.getAttribute('data-font');
+                saveSettings();
+                applySettings();
+            });
+        });
+
+        // Font size slider
+        if (sizeSlider) {
+            sizeSlider.addEventListener('input', function () {
+                settings.size = parseInt(this.value);
+                saveSettings();
+                applySettings();
+            });
+        }
+
+        // Font size buttons
+        if (sizeDecrease) {
+            sizeDecrease.addEventListener('click', function () {
+                settings.size = Math.max(14, settings.size - 1);
+                saveSettings();
+                applySettings();
+            });
+        }
+
+        if (sizeIncrease) {
+            sizeIncrease.addEventListener('click', function () {
+                settings.size = Math.min(26, settings.size + 1);
+                saveSettings();
+                applySettings();
+            });
+        }
+
+        // Line height
+        document.querySelectorAll('.fp-line-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                settings.line = this.getAttribute('data-line');
+                saveSettings();
+                applySettings();
+            });
+        });
+
+        // Text width
+        document.querySelectorAll('.fp-width-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                settings.width = this.getAttribute('data-width');
+                saveSettings();
+                applySettings();
+            });
+        });
+
+        // Text align
+        document.querySelectorAll('.fp-align-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                settings.align = this.getAttribute('data-align');
+                saveSettings();
+                applySettings();
+            });
+        });
+
+        // Reset
+        if (btnReset) btnReset.addEventListener('click', resetSettings);
+    }
+
+    // ========== INIT ==========
+    function init() {
+        btnOpen = document.getElementById('btn-font-picker');
+        panel = document.getElementById('font-picker-panel');
+        overlay = document.getElementById('font-picker-overlay');
+        btnClose = document.getElementById('fp-close');
+        btnReset = document.getElementById('fp-reset');
+        sizeSlider = document.getElementById('fp-size-slider');
+        sizeValue = document.getElementById('fp-size-value');
+        sizeDecrease = document.getElementById('fp-size-decrease');
+        sizeIncrease = document.getElementById('fp-size-increase');
+        previewBox = document.getElementById('fp-preview-box');
+
+        if (!panel) return;
+
+        loadSettings();
+        applySettings();
+        bindEvents();
+    }
+
+    // ========== START ==========
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
