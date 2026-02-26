@@ -1924,3 +1924,262 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('DOMContentLoaded', initPlayer);
 
 })();
+
+// ============================================================
+// ZEN MODE / READING MODE
+// ============================================================
+
+(function () {
+
+    var zenOverlay = null;
+    var zenFontSize = 115; // percentage
+    var isZenActive = false;
+    var isSettingsOpen = false;
+
+    // ========== CREATE ZEN MODE OVERLAY ==========
+    function createZenOverlay() {
+        if (zenOverlay) return;
+
+        zenOverlay = document.createElement('div');
+        zenOverlay.className = 'zen-mode-overlay';
+        zenOverlay.id = 'zen-mode-overlay';
+
+        zenOverlay.innerHTML = 
+            // Progress bar
+            '<div class="zen-progress"><div class="zen-progress-fill" id="zen-progress-fill"></div></div>' +
+
+            // Exit button
+            '<button class="zen-exit-btn" id="zen-exit-btn" title="Keluar Zen Mode">✕</button>' +
+
+            // Container
+            '<div class="zen-container">' +
+                '<div class="zen-header">' +
+                    '<span class="zen-part-label" id="zen-part-label"></span>' +
+                    '<span class="zen-chapter-num" id="zen-chapter-num"></span>' +
+                    '<h1 class="zen-title" id="zen-title"></h1>' +
+                '</div>' +
+                '<div class="zen-content" id="zen-content"></div>' +
+            '</div>' +
+
+            // Settings panel
+            '<div class="zen-settings" id="zen-settings">' +
+                '<h4 class="zen-settings-title">Pengaturan</h4>' +
+                '<div class="zen-setting-row">' +
+                    '<span class="zen-setting-label">Ukuran Font</span>' +
+                    '<div class="zen-font-controls">' +
+                        '<button class="zen-font-btn" id="zen-font-decrease">A-</button>' +
+                        '<span class="zen-font-size" id="zen-font-display">115%</span>' +
+                        '<button class="zen-font-btn" id="zen-font-increase">A+</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="zen-setting-row">' +
+                    '<span class="zen-setting-label">Tema</span>' +
+                    '<button class="zen-theme-toggle" id="zen-theme-toggle">🌙 / ☀️</button>' +
+                '</div>' +
+            '</div>' +
+
+            // Bottom controls
+            '<div class="zen-controls">' +
+                '<button class="zen-ctrl-btn" id="zen-prev-chapter">' +
+                    '<span>←</span> Sebelumnya' +
+                '</button>' +
+                '<button class="zen-ctrl-btn" id="zen-settings-btn">' +
+                    '<span>⚙️</span> Pengaturan' +
+                '</button>' +
+                '<button class="zen-ctrl-btn primary" id="zen-next-chapter">' +
+                    'Selanjutnya <span>→</span>' +
+                '</button>' +
+            '</div>';
+
+        document.body.appendChild(zenOverlay);
+        bindZenEvents();
+    }
+
+    // ========== OPEN ZEN MODE ==========
+    function openZenMode() {
+        createZenOverlay();
+
+        // Get current chapter content
+        var partLabel = document.getElementById('chapter-part-label');
+        var chapterNum = document.getElementById('chapter-number');
+        var chapterTitle = document.getElementById('chapter-title');
+        var chapterContent = document.getElementById('chapter-content');
+
+        if (!chapterContent) return;
+
+        // Copy content to zen mode
+        document.getElementById('zen-part-label').textContent = partLabel ? partLabel.textContent : '';
+        document.getElementById('zen-chapter-num').textContent = chapterNum ? chapterNum.textContent : '';
+        document.getElementById('zen-title').textContent = chapterTitle ? chapterTitle.textContent : '';
+        document.getElementById('zen-content').innerHTML = chapterContent.innerHTML;
+
+        // Apply font size
+        applyZenFontSize();
+
+        // Show overlay
+        zenOverlay.classList.add('active');
+        document.body.classList.add('zen-active');
+        isZenActive = true;
+
+        // Reset scroll
+        zenOverlay.scrollTop = 0;
+
+        // Update progress
+        updateZenProgress();
+    }
+
+    // ========== CLOSE ZEN MODE ==========
+    function closeZenMode() {
+        if (!zenOverlay) return;
+
+        zenOverlay.classList.remove('active');
+        document.body.classList.remove('zen-active');
+        isZenActive = false;
+        isSettingsOpen = false;
+
+        var settings = document.getElementById('zen-settings');
+        if (settings) settings.classList.remove('open');
+    }
+
+    // ========== FONT SIZE ==========
+    function applyZenFontSize() {
+        var content = document.getElementById('zen-content');
+        var display = document.getElementById('zen-font-display');
+
+        if (content) content.style.fontSize = zenFontSize + '%';
+        if (display) display.textContent = zenFontSize + '%';
+
+        try { localStorage.setItem('kabut_zen_fontsize', zenFontSize); } catch (e) {}
+    }
+
+    function changeZenFontSize(delta) {
+        zenFontSize = Math.max(80, Math.min(160, zenFontSize + delta));
+        applyZenFontSize();
+    }
+
+    // ========== PROGRESS ==========
+    function updateZenProgress() {
+        if (!zenOverlay || !isZenActive) return;
+
+        var scrollTop = zenOverlay.scrollTop;
+        var scrollHeight = zenOverlay.scrollHeight - zenOverlay.clientHeight;
+        var progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+
+        var fill = document.getElementById('zen-progress-fill');
+        if (fill) fill.style.width = progress + '%';
+    }
+
+    // ========== TOGGLE SETTINGS ==========
+    function toggleZenSettings() {
+        var settings = document.getElementById('zen-settings');
+        if (!settings) return;
+
+        isSettingsOpen = !isSettingsOpen;
+        settings.classList.toggle('open', isSettingsOpen);
+    }
+
+    // ========== CHAPTER NAVIGATION ==========
+    function zenPrevChapter() {
+        closeZenMode();
+        var prevBtn = document.getElementById('btn-prev-chapter');
+        if (prevBtn && !prevBtn.disabled) {
+            prevBtn.click();
+            setTimeout(function () { openZenMode(); }, 500);
+        }
+    }
+
+    function zenNextChapter() {
+        closeZenMode();
+        var nextBtn = document.getElementById('btn-next-chapter');
+        if (nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
+            setTimeout(function () { openZenMode(); }, 500);
+        }
+    }
+
+    // ========== THEME TOGGLE ==========
+    function zenToggleTheme() {
+        var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+
+        // Update main theme icon if exists
+        var themeIcon = document.getElementById('theme-icon');
+        if (themeIcon) themeIcon.textContent = newTheme === 'dark' ? '☀' : '🌙';
+
+        try { localStorage.setItem('kabut_theme', newTheme); } catch (e) {}
+    }
+
+    // ========== BIND EVENTS ==========
+    function bindZenEvents() {
+        // Exit button
+        var exitBtn = document.getElementById('zen-exit-btn');
+        if (exitBtn) exitBtn.addEventListener('click', closeZenMode);
+
+        // Settings toggle
+        var settingsBtn = document.getElementById('zen-settings-btn');
+        if (settingsBtn) settingsBtn.addEventListener('click', toggleZenSettings);
+
+        // Font size
+        var fontInc = document.getElementById('zen-font-increase');
+        var fontDec = document.getElementById('zen-font-decrease');
+        if (fontInc) fontInc.addEventListener('click', function () { changeZenFontSize(10); });
+        if (fontDec) fontDec.addEventListener('click', function () { changeZenFontSize(-10); });
+
+        // Theme toggle
+        var themeToggle = document.getElementById('zen-theme-toggle');
+        if (themeToggle) themeToggle.addEventListener('click', zenToggleTheme);
+
+        // Chapter navigation
+        var prevBtn = document.getElementById('zen-prev-chapter');
+        var nextBtn = document.getElementById('zen-next-chapter');
+        if (prevBtn) prevBtn.addEventListener('click', zenPrevChapter);
+        if (nextBtn) nextBtn.addEventListener('click', zenNextChapter);
+
+        // Scroll progress
+        zenOverlay.addEventListener('scroll', updateZenProgress);
+
+        // ESC key to close
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isZenActive) {
+                closeZenMode();
+            }
+        });
+
+        // Click outside settings to close
+        zenOverlay.addEventListener('click', function (e) {
+            var settings = document.getElementById('zen-settings');
+            var settingsBtn = document.getElementById('zen-settings-btn');
+            if (isSettingsOpen && settings && !settings.contains(e.target) && e.target !== settingsBtn) {
+                isSettingsOpen = false;
+                settings.classList.remove('open');
+            }
+        });
+    }
+
+    // ========== LOAD SAVED FONT SIZE ==========
+    function loadZenSettings() {
+        try {
+            var saved = parseInt(localStorage.getItem('kabut_zen_fontsize'));
+            if (!isNaN(saved) && saved >= 80 && saved <= 160) {
+                zenFontSize = saved;
+            }
+        } catch (e) {}
+    }
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', function () {
+        loadZenSettings();
+
+        // Bind zen mode button
+        var zenBtn = document.getElementById('btn-zen-mode');
+        if (zenBtn) {
+            zenBtn.addEventListener('click', openZenMode);
+        }
+    });
+
+    // Expose for external use
+    window.openZenMode = openZenMode;
+    window.closeZenMode = closeZenMode;
+
+})();
