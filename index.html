@@ -483,6 +483,9 @@
                      <button class="zen-mode-btn" id="btn-zen-mode" title="Mode Membaca">
         <span class="zen-icon">🧘</span> Zen Mode
                      </button>
+                     <button class="font-picker-btn" id="btn-font-picker" title="Pilihan Font">
+        <span class="font-picker-icon">Aa</span>
+                        </button>
                 </div>
             </div>
             <article class="chapter-content" id="chapter-content">
@@ -595,6 +598,116 @@
     </div>
 </div>
 <!-- ===== END MUSIC PLAYER ===== -->
+ <!-- ===== FONT PICKER PANEL ===== -->
+<div class="font-picker-overlay" id="font-picker-overlay"></div>
+<div class="font-picker-panel" id="font-picker-panel">
+
+    <!-- Header -->
+    <div class="fp-header">
+        <h3 class="fp-title">Pengaturan Tampilan</h3>
+        <button class="fp-close" id="fp-close">✕</button>
+    </div>
+
+    <!-- Font Family -->
+    <div class="fp-section">
+        <label class="fp-label">Jenis Font</label>
+        <div class="fp-font-options" id="fp-font-options">
+            <button class="fp-font-btn active" data-font="serif">
+                <span class="fp-font-preview fp-preview-serif">Aa</span>
+                <span class="fp-font-name">Serif</span>
+                <span class="fp-font-desc">Klasik & Elegan</span>
+            </button>
+            <button class="fp-font-btn" data-font="sans">
+                <span class="fp-font-preview fp-preview-sans">Aa</span>
+                <span class="fp-font-name">Sans-serif</span>
+                <span class="fp-font-desc">Modern & Bersih</span>
+            </button>
+            <button class="fp-font-btn" data-font="mono">
+                <span class="fp-font-preview fp-preview-mono">Aa</span>
+                <span class="fp-font-name">Monospace</span>
+                <span class="fp-font-desc">Typewriter</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Font Size -->
+    <div class="fp-section">
+        <label class="fp-label">Ukuran Font</label>
+        <div class="fp-size-controls">
+            <button class="fp-size-btn" id="fp-size-decrease">A-</button>
+            <div class="fp-size-slider-wrapper">
+                <input type="range" class="fp-size-slider" id="fp-size-slider" 
+                       min="14" max="26" step="1" value="18">
+                <span class="fp-size-value" id="fp-size-value">18px</span>
+            </div>
+            <button class="fp-size-btn" id="fp-size-increase">A+</button>
+        </div>
+    </div>
+
+    <!-- Line Height -->
+    <div class="fp-section">
+        <label class="fp-label">Jarak Baris</label>
+        <div class="fp-line-options" id="fp-line-options">
+            <button class="fp-line-btn" data-line="compact">
+                <span class="fp-line-icon">≡</span>
+                <span>Rapat</span>
+            </button>
+            <button class="fp-line-btn active" data-line="normal">
+                <span class="fp-line-icon">☰</span>
+                <span>Normal</span>
+            </button>
+            <button class="fp-line-btn" data-line="relaxed">
+                <span class="fp-line-icon">≡̃</span>
+                <span>Longgar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Text Width -->
+    <div class="fp-section">
+        <label class="fp-label">Lebar Teks</label>
+        <div class="fp-width-options" id="fp-width-options">
+            <button class="fp-width-btn" data-width="narrow">
+                <span>Sempit</span>
+            </button>
+            <button class="fp-width-btn active" data-width="normal">
+                <span>Normal</span>
+            </button>
+            <button class="fp-width-btn" data-width="wide">
+                <span>Lebar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Text Align -->
+    <div class="fp-section">
+        <label class="fp-label">Perataan Teks</label>
+        <div class="fp-align-options" id="fp-align-options">
+            <button class="fp-align-btn" data-align="left" title="Rata Kiri">
+                <span>☰</span>
+            </button>
+            <button class="fp-align-btn active" data-align="justify" title="Rata Kiri-Kanan">
+                <span>☷</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="fp-section">
+        <label class="fp-label">Preview</label>
+        <div class="fp-preview-box" id="fp-preview-box">
+            <p>Porto menyambutnya dengan hujan. Bukan hujan deras yang dramatis seperti di film-film. 
+            Tapi hujan kecil, *lembut*, yang jatuh tanpa suara — seolah kota ini sedang **berbisik** kepadanya.</p>
+        </div>
+    </div>
+
+    <!-- Reset -->
+    <div class="fp-footer">
+        <button class="fp-reset-btn" id="fp-reset">↻ Reset ke Default</button>
+    </div>
+
+</div>
+<!-- ===== END FONT PICKER ===== -->
     <!-- FOOTER -->
       <footer id="main-footer">
         <div class="footer-inner">
@@ -622,7 +735,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2025 Ripki Dwi Putra — Seluruh hak cipta dilindungi undang-undang</p>
+                <p>© 2026 Ripki Dwi Putra — Seluruh hak cipta dilindungi undang-undang</p>
                 <p class="footer-sub">Dibuat dengan ☁ dan secangkir port wine</p>
             </div>
         </div>
