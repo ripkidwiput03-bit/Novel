@@ -2927,42 +2927,30 @@ document.addEventListener('DOMContentLoaded', function () {
 })();
 
 // ============================================================
-// READING STATISTICS
+// READING STATISTICS — FIXED VERSION
 // ============================================================
 
 (function () {
 
-    // ========== STORAGE KEY ==========
     var STORAGE_KEY = 'kabut_reading_stats';
 
-    // ========== DEFAULT DATA ==========
     function getDefaultStats() {
         return {
-            chaptersRead: {},       // { "1": { time: 300, date: "2025-06-29", words: 2000 } }
-            dailyMinutes: {},       // { "2025-06-29": 15 }
+            chaptersRead: {},
+            dailyMinutes: {},
             totalSeconds: 0,
             currentStreak: 0,
             bestStreak: 0,
-            lastReadDate: null,
-            sessionStart: null
+            lastReadDate: null
         };
     }
 
-    // ========== STATE ==========
     var stats = getDefaultStats();
     var sessionTimer = null;
     var sessionSeconds = 0;
     var currentReadingChapter = null;
     var isOpen = false;
-
-    // Chapter word counts (approximate)
-    var chapterWords = {
-        1: 2000, 2: 2200, 3: 1800, 4: 2100, 5: 1900,
-        6: 2300, 7: 1700, 8: 2400, 9: 2000, 10: 2100,
-        11: 1800, 12: 2200, 13: 2500, 14: 1900, 15: 2000,
-        16: 2100, 17: 2300, 18: 1800, 19: 2000, 20: 2200,
-        21: 2400, 22: 2100, 23: 2500
-    };
+    var trackingActive = false;
 
     var chapterTitles = {
         1: "Sungai yang Tidak Pernah Diam", 2: "Perempuan di Balik Kanvas",
@@ -2989,9 +2977,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // ========== LOAD / SAVE ==========
     function loadStats() {
         try {
-            var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            var saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                stats = Object.assign(getDefaultStats(), saved);
+                var parsed = JSON.parse(saved);
+                stats.chaptersRead = parsed.chaptersRead || {};
+                stats.dailyMinutes = parsed.dailyMinutes || {};
+                stats.totalSeconds = parsed.totalSeconds || 0;
+                stats.currentStreak = parsed.currentStreak || 0;
+                stats.bestStreak = parsed.bestStreak || 0;
+                stats.lastReadDate = parsed.lastReadDate || null;
             }
         } catch (e) {
             stats = getDefaultStats();
@@ -3007,106 +3001,129 @@ document.addEventListener('DOMContentLoaded', function () {
     // ========== DATE UTILS ==========
     function getToday() {
         var d = new Date();
-        return d.getFullYear() + '-' +
-            String(d.getMonth() + 1).padStart(2, '0') + '-' +
-            String(d.getDate()).padStart(2, '0');
+        var mm = d.getMonth() + 1;
+        var dd = d.getDate();
+        return d.getFullYear() + '-' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd;
     }
 
     function getDayName(dateStr) {
         var days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-        var d = new Date(dateStr);
+        var d = new Date(dateStr + 'T00:00:00');
         return days[d.getDay()];
     }
 
-    function formatMinutes(totalSeconds) {
-        var mins = Math.floor(totalSeconds / 60);
+    function formatTime(totalSecs) {
+        if (!totalSecs || totalSecs <= 0) return '0m';
+        var mins = Math.floor(totalSecs / 60);
+        if (mins < 1) return totalSecs + 'd';
         if (mins < 60) return mins + 'm';
         var hours = Math.floor(mins / 60);
-        var remainMins = mins % 60;
-        if (remainMins === 0) return hours + 'j';
-        return hours + 'j ' + remainMins + 'm';
+        var remMins = mins % 60;
+        if (remMins === 0) return hours + 'j';
+        return hours + 'j ' + remMins + 'm';
     }
 
-    // ========== STREAK CALCULATION ==========
+    // ========== STREAK ==========
     function updateStreak() {
         var today = getToday();
 
         if (!stats.lastReadDate) {
             stats.currentStreak = 1;
-            stats.bestStreak = 1;
+            stats.bestStreak = Math.max(stats.bestStreak, 1);
             stats.lastReadDate = today;
+            saveStats();
             return;
         }
 
         if (stats.lastReadDate === today) return;
 
-        var lastDate = new Date(stats.lastReadDate);
-        var todayDate = new Date(today);
-        var diffDays = Math.floor((todayDate - lastDate) / 86400000);
+        var last = new Date(stats.lastReadDate + 'T00:00:00');
+        var now = new Date(today + 'T00:00:00');
+        var diff = Math.floor((now - last) / 86400000);
 
-        if (diffDays === 1) {
+        if (diff === 1) {
             stats.currentStreak++;
-        } else if (diffDays > 1) {
+        } else if (diff > 1) {
             stats.currentStreak = 1;
         }
 
-        if (stats.currentStreak > stats.bestStreak) {
-            stats.bestStreak = stats.currentStreak;
-        }
-
+        stats.bestStreak = Math.max(stats.bestStreak, stats.currentStreak);
         stats.lastReadDate = today;
+        saveStats();
     }
 
     // ========== TRACKING ==========
     function startTracking(chapterNum) {
+        // Stop previous
+        stopTracking();
+
+        chapterNum = parseInt(chapterNum);
+        if (isNaN(chapterNum) || chapterNum < 1 || chapterNum > 23) return;
+
         currentReadingChapter = chapterNum;
         sessionSeconds = 0;
+        trackingActive = true;
 
-        if (sessionTimer) clearInterval(sessionTimer);
-
-        sessionTimer = setInterval(function () {
-            sessionSeconds++;
-            stats.totalSeconds++;
-
-            // Update daily minutes
-            var today = getToday();
-            if (!stats.dailyMinutes[today]) stats.dailyMinutes[today] = 0;
-
-            // Add 1 second worth of minutes every 60 seconds
-            if (sessionSeconds % 60 === 0) {
-                stats.dailyMinutes[today]++;
-            }
-
-            // Save every 30 seconds
-            if (sessionSeconds % 30 === 0) {
-                saveStats();
-            }
-        }, 1000);
+        // Mark chapter
+        var chKey = String(chapterNum);
+        if (!stats.chaptersRead[chKey]) {
+            stats.chaptersRead[chKey] = {
+                time: 0,
+                date: getToday(),
+                words: 2000
+            };
+        }
 
         // Update streak
         updateStreak();
 
-        // Mark chapter as read
-        if (!stats.chaptersRead[chapterNum]) {
-            stats.chaptersRead[chapterNum] = {
-                time: 0,
-                date: getToday(),
-                words: chapterWords[chapterNum] || 2000
-            };
-        }
+        // Start timer
+        sessionTimer = setInterval(function () {
+            if (!trackingActive) return;
+
+            sessionSeconds++;
+            stats.totalSeconds++;
+
+            // Update daily
+            var today = getToday();
+            if (!stats.dailyMinutes[today]) stats.dailyMinutes[today] = 0;
+            if (sessionSeconds % 60 === 0) {
+                stats.dailyMinutes[today]++;
+            }
+
+            // Update chapter time
+            if (stats.chaptersRead[chKey]) {
+                stats.chaptersRead[chKey].time++;
+            }
+
+            // Auto save every 10 seconds
+            if (sessionSeconds % 10 === 0) {
+                saveStats();
+            }
+        }, 1000);
+
+        // Count words from actual content
+        setTimeout(function () {
+            var content = document.getElementById('chapter-content');
+            if (content && stats.chaptersRead[chKey]) {
+                var text = content.textContent || content.innerText || '';
+                var words = text.trim().split(/\s+/).length;
+                if (words > 10) {
+                    stats.chaptersRead[chKey].words = words;
+                }
+            }
+            saveStats();
+        }, 2000);
 
         saveStats();
     }
 
     function stopTracking() {
+        trackingActive = false;
+
         if (sessionTimer) {
             clearInterval(sessionTimer);
             sessionTimer = null;
-        }
-
-        // Save reading time for current chapter
-        if (currentReadingChapter && stats.chaptersRead[currentReadingChapter]) {
-            stats.chaptersRead[currentReadingChapter].time += sessionSeconds;
         }
 
         sessionSeconds = 0;
@@ -3115,85 +3132,64 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ========== RENDER DASHBOARD ==========
     function renderDashboard() {
-        var chaptersReadCount = Object.keys(stats.chaptersRead).length;
+        loadStats(); // Reload latest
+
+        var readKeys = Object.keys(stats.chaptersRead);
+        var chaptersReadCount = readKeys.length;
         var totalChapters = 23;
 
-        // Overview cards
-        var el;
+        // --- Overview Cards ---
+        setEl('stat-chapters-read', chaptersReadCount);
+        setEl('stat-chapters-total', 'dari ' + totalChapters + ' chapter');
 
-        // Chapters read
-        el = document.getElementById('stat-chapters-read');
-        if (el) el.textContent = chaptersReadCount;
+        setEl('stat-total-time', formatTime(stats.totalSeconds));
 
-        el = document.getElementById('stat-chapters-total');
-        if (el) el.textContent = 'dari ' + totalChapters + ' chapter';
+        var avgSecs = chaptersReadCount > 0 ? Math.floor(stats.totalSeconds / chaptersReadCount) : 0;
+        setEl('stat-avg-time', 'rata-rata: ' + formatTime(avgSecs) + '/chapter');
 
-        // Total time
-        el = document.getElementById('stat-total-time');
-        if (el) el.textContent = formatMinutes(stats.totalSeconds);
-
-        el = document.getElementById('stat-avg-time');
-        if (el) {
-            var avgSecs = chaptersReadCount > 0 ? Math.floor(stats.totalSeconds / chaptersReadCount) : 0;
-            el.textContent = 'rata-rata: ' + formatMinutes(avgSecs) + '/chapter';
-        }
-
-        // Words read
         var totalWords = 0;
-        Object.keys(stats.chaptersRead).forEach(function (ch) {
-            totalWords += stats.chaptersRead[ch].words || 0;
+        readKeys.forEach(function (ch) {
+            totalWords += (stats.chaptersRead[ch].words || 2000);
         });
+        setEl('stat-words-read', totalWords.toLocaleString());
+        setEl('stat-pages-est', '± ' + Math.ceil(totalWords / 250) + ' halaman buku');
 
-        el = document.getElementById('stat-words-read');
-        if (el) el.textContent = totalWords.toLocaleString();
+        setEl('stat-streak', stats.currentStreak);
+        setEl('stat-streak-best', 'terbaik: ' + stats.bestStreak + ' hari');
 
-        el = document.getElementById('stat-pages-est');
-        if (el) el.textContent = '± ' + Math.ceil(totalWords / 250) + ' halaman buku';
-
-        // Streak
-        el = document.getElementById('stat-streak');
-        if (el) el.textContent = stats.currentStreak;
-
-        el = document.getElementById('stat-streak-best');
-        if (el) el.textContent = 'terbaik: ' + stats.bestStreak + ' hari';
-
-        // Progress ring
-        var percent = Math.round((chaptersReadCount / totalChapters) * 100);
+        // --- Progress Ring ---
+        var percent = totalChapters > 0 ? Math.round((chaptersReadCount / totalChapters) * 100) : 0;
         var circumference = 326.73;
         var offset = circumference - (percent / 100) * circumference;
 
-        el = document.getElementById('stats-ring-fill');
-        if (el) {
-            setTimeout(function () { el.style.strokeDashoffset = offset; }, 100);
+        var ringFill = document.getElementById('stats-ring-fill');
+        if (ringFill) {
+            ringFill.style.strokeDashoffset = circumference; // reset
+            setTimeout(function () {
+                ringFill.style.strokeDashoffset = offset;
+            }, 200);
         }
 
-        el = document.getElementById('stats-ring-percent');
-        if (el) el.textContent = percent + '%';
+        setEl('stats-ring-percent', percent + '%');
 
-        el = document.getElementById('stat-remaining-chapters');
-        if (el) el.textContent = (totalChapters - chaptersReadCount) + ' chapter tersisa';
+        var remaining = totalChapters - chaptersReadCount;
+        setEl('stat-remaining-chapters', remaining + ' chapter tersisa');
 
-        el = document.getElementById('stat-remaining-time');
-        if (el) {
-            var avgMins = chaptersReadCount > 0 ? Math.floor(stats.totalSeconds / 60 / chaptersReadCount) : 8;
-            var remaining = (totalChapters - chaptersReadCount) * avgMins;
-            el.textContent = '± ' + formatMinutes(remaining * 60) + ' lagi';
-        }
+        var avgMins = chaptersReadCount > 0 ? Math.ceil(stats.totalSeconds / 60 / chaptersReadCount) : 8;
+        setEl('stat-remaining-time', '± ' + formatTime(remaining * avgMins * 60) + ' lagi');
 
-        // History
         renderHistory();
-
-        // Heatmap
         renderHeatmap();
-
-        // Favorite chapter
         renderFavorite();
-
-        // Fun facts
-        renderFacts();
+        renderFacts(chaptersReadCount, totalWords);
     }
 
-    // ========== RENDER HISTORY ==========
+    function setEl(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    // ========== HISTORY ==========
     function renderHistory() {
         var container = document.getElementById('stats-history');
         if (!container) return;
@@ -3210,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var html = '';
         chapters.forEach(function (ch) {
             var data = stats.chaptersRead[ch];
-            var title = chapterTitles[ch] || 'Chapter ' + ch;
+            var title = chapterTitles[parseInt(ch)] || 'Chapter ' + ch;
 
             html += '<div class="stats-history-item">' +
                 '<span class="stats-history-num">' + ch + '</span>' +
@@ -3218,14 +3214,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     '<div class="stats-history-title">' + title + '</div>' +
                     '<div class="stats-history-meta">' + (data.date || '-') + '</div>' +
                 '</div>' +
-                '<span class="stats-history-time">' + formatMinutes(data.time || 0) + '</span>' +
+                '<span class="stats-history-time">' + formatTime(data.time || 0) + '</span>' +
             '</div>';
         });
 
         container.innerHTML = html;
     }
 
-    // ========== RENDER HEATMAP ==========
+    // ========== HEATMAP ==========
     function renderHeatmap() {
         var container = document.getElementById('stats-heatmap');
         if (!container) return;
@@ -3236,23 +3232,23 @@ document.addEventListener('DOMContentLoaded', function () {
         for (var i = 6; i >= 0; i--) {
             var d = new Date(today);
             d.setDate(d.getDate() - i);
-            var dateStr = d.getFullYear() + '-' +
-                String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                String(d.getDate()).padStart(2, '0');
+            var mm = d.getMonth() + 1;
+            var dd = d.getDate();
+            var dateStr = d.getFullYear() + '-' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd;
 
             var mins = stats.dailyMinutes[dateStr] || 0;
             var level = 0;
             if (mins > 0) level = 1;
-            if (mins >= 10) level = 2;
-            if (mins >= 20) level = 3;
-            if (mins >= 40) level = 4;
+            if (mins >= 5) level = 2;
+            if (mins >= 15) level = 3;
+            if (mins >= 30) level = 4;
 
             var dayName = getDayName(dateStr);
-            var isToday = dateStr === getToday();
+            var isToday = (dateStr === getToday());
 
-            html += '<div class="stats-heatmap-day heatmap-level-' + level + '" ' +
-                'title="' + dayName + ': ' + mins + ' menit"' +
-                (isToday ? ' style="outline: 2px solid rgba(196,168,124,0.3); outline-offset: 2px;"' : '') + '>' +
+            html += '<div class="stats-heatmap-day heatmap-level-' + level + '"' +
+                ' title="' + dayName + ': ' + mins + ' menit"' +
+                (isToday ? ' style="outline:2px solid rgba(196,168,124,0.3);outline-offset:2px;"' : '') + '>' +
                 '<span class="heatmap-day-label">' + dayName + '</span>' +
                 '<span class="heatmap-day-value">' + (mins > 0 ? mins + 'm' : '-') + '</span>' +
             '</div>';
@@ -3261,7 +3257,7 @@ document.addEventListener('DOMContentLoaded', function () {
         container.innerHTML = html;
     }
 
-    // ========== RENDER FAVORITE ==========
+    // ========== FAVORITE ==========
     function renderFavorite() {
         var container = document.getElementById('stats-favorite');
         if (!container) return;
@@ -3273,71 +3269,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         var maxTime = 0;
-        var favChapter = null;
+        var favCh = null;
 
         chapters.forEach(function (ch) {
-            var time = stats.chaptersRead[ch].time || 0;
-            if (time > maxTime) {
-                maxTime = time;
-                favChapter = ch;
-            }
+            var t = stats.chaptersRead[ch].time || 0;
+            if (t > maxTime) { maxTime = t; favCh = ch; }
         });
 
-        if (!favChapter) {
-            container.innerHTML = '<div class="stats-empty">Belum ada data</div>';
+        if (!favCh || maxTime === 0) {
+            container.innerHTML = '<div class="stats-empty">Belum ada data cukup</div>';
             return;
         }
 
-        var title = chapterTitles[favChapter] || 'Chapter ' + favChapter;
+        var title = chapterTitles[parseInt(favCh)] || 'Chapter ' + favCh;
 
         container.innerHTML =
             '<div class="stats-favorite-item">' +
-                '<div class="stats-favorite-chapter">Ch. ' + favChapter + ' — ' + title + '</div>' +
-                '<div class="stats-favorite-time">⏱ ' + formatMinutes(maxTime) + ' dihabiskan membaca</div>' +
+                '<div class="stats-favorite-chapter">Ch. ' + favCh + ' — ' + title + '</div>' +
+                '<div class="stats-favorite-time">⏱ ' + formatTime(maxTime) + ' dihabiskan membaca</div>' +
             '</div>';
     }
 
-    // ========== RENDER FUN FACTS ==========
-    function renderFacts() {
+    // ========== FUN FACTS ==========
+    function renderFacts(chaptersReadCount, totalWords) {
         var container = document.getElementById('stats-facts');
         if (!container) return;
 
-        var chaptersReadCount = Object.keys(stats.chaptersRead).length;
         var totalMins = Math.floor(stats.totalSeconds / 60);
-        var totalWords = 0;
-
-        Object.keys(stats.chaptersRead).forEach(function (ch) {
-            totalWords += stats.chaptersRead[ch].words || 0;
-        });
-
         var facts = [];
 
-        if (totalMins > 0) {
+        if (totalMins >= 1) {
             var coffees = Math.max(1, Math.floor(totalMins / 15));
             facts.push({
                 icon: '☕',
-                text: 'Kamu sudah menghabiskan waktu setara <span class="stats-fact-highlight">' + coffees + ' cangkir kopi</span> untuk membaca novel ini.'
+                text: 'Kamu sudah menghabiskan <span class="stats-fact-highlight">' + formatTime(stats.totalSeconds) + '</span> membaca — setara ' + coffees + ' cangkir kopi.'
             });
         }
 
-        if (totalWords > 0) {
+        if (totalWords > 100) {
             facts.push({
                 icon: '📄',
-                text: 'Total <span class="stats-fact-highlight">' + totalWords.toLocaleString() + ' kata</span> yang sudah kamu baca — setara ' + Math.ceil(totalWords / 250) + ' halaman buku.'
+                text: '<span class="stats-fact-highlight">' + totalWords.toLocaleString() + ' kata</span> dibaca — setara ' + Math.ceil(totalWords / 250) + ' halaman buku.'
+            });
+        }
+
+        if (chaptersReadCount >= 1 && chaptersReadCount < 7) {
+            facts.push({
+                icon: '🌉',
+                text: 'Kamu baru memulai perjalanan di <span class="stats-fact-highlight">Porto</span>. Masih banyak yang menanti!'
             });
         }
 
         if (chaptersReadCount >= 7) {
             facts.push({
                 icon: '🌉',
-                text: 'Kamu sudah menemani Arka melewati <span class="stats-fact-highlight">seluruh Porto</span>.'
+                text: 'Kamu sudah melewati <span class="stats-fact-highlight">seluruh Porto</span> bersama Arka!'
             });
         }
 
         if (chaptersReadCount >= 11) {
             facts.push({
                 icon: '🌫️',
-                text: 'Kamu sudah memasuki <span class="stats-fact-highlight">kabut Sintra</span> bersama Arka.'
+                text: 'Kamu sudah memasuki <span class="stats-fact-highlight">kabut Sintra</span> yang misterius.'
             });
         }
 
@@ -3351,29 +3344,29 @@ document.addEventListener('DOMContentLoaded', function () {
         if (chaptersReadCount >= 23) {
             facts.push({
                 icon: '🎉',
-                text: 'Kamu telah menyelesaikan <span class="stats-fact-highlight">seluruh novel</span>! Selamat!'
+                text: 'Kamu telah menyelesaikan <span class="stats-fact-highlight">seluruh novel</span>! Bravo!'
             });
         }
 
         if (stats.bestStreak >= 3) {
             facts.push({
                 icon: '🔥',
-                text: 'Streak terbaikmu: <span class="stats-fact-highlight">' + stats.bestStreak + ' hari berturut-turut</span> membaca!'
+                text: 'Streak terbaik: <span class="stats-fact-highlight">' + stats.bestStreak + ' hari</span> berturut-turut!'
             });
         }
 
         if (facts.length === 0) {
             facts.push({
                 icon: '✨',
-                text: 'Mulai membaca untuk melihat fun facts tentang perjalanan bacamu!'
+                text: 'Mulai membaca untuk melihat statistik perjalananmu!'
             });
         }
 
         var html = '';
-        facts.forEach(function (fact) {
+        facts.forEach(function (f) {
             html += '<div class="stats-fact">' +
-                '<span class="stats-fact-icon">' + fact.icon + '</span>' +
-                '<span class="stats-fact-text">' + fact.text + '</span>' +
+                '<span class="stats-fact-icon">' + f.icon + '</span>' +
+                '<span class="stats-fact-text">' + f.text + '</span>' +
             '</div>';
         });
 
@@ -3403,27 +3396,103 @@ document.addEventListener('DOMContentLoaded', function () {
         renderDashboard();
     }
 
-    // ========== HOOK INTO CHAPTER LOADING ==========
-    // Listen for chapter opens
-    var originalOpenChapter = window.openChapterByNum;
-    window.openChapterByNum = function (num) {
-        stopTracking();
-        if (typeof originalOpenChapter === 'function') {
-            originalOpenChapter(num);
-        }
-        startTracking(num);
+    // ========== EXPOSE TRACKING TO GLOBAL ==========
+    // ★ INI YANG PALING PENTING — expose startTracking ke window
+    window.startReadingStats = function (chapterNum) {
+        startTracking(chapterNum);
     };
 
-    // Track on page visibility change
+    window.stopReadingStats = function () {
+        stopTracking();
+    };
+
+    // ========== OBSERVE READER SECTION ==========
+    // ★ PERBAIKAN: Watch DOM untuk detect kapan chapter content berubah
+    function setupObserver() {
+        var chapterContent = document.getElementById('chapter-content');
+        if (!chapterContent) return;
+
+        var observer = new MutationObserver(function () {
+            // Detect chapter loaded by checking chapter number element
+            var chNumEl = document.getElementById('chapter-number');
+            if (!chNumEl) return;
+
+            var text = chNumEl.textContent || '';
+            var match = text.match(/(\d+)/);
+            if (!match) return;
+
+            var chNum = parseInt(match[1]);
+            if (isNaN(chNum) || chNum < 1 || chNum > 23) return;
+
+            // Only start if different chapter or not tracking
+            if (chNum !== currentReadingChapter || !trackingActive) {
+                startTracking(chNum);
+            }
+        });
+
+        observer.observe(chapterContent, {
+            childList: true,
+            subtree: false
+        });
+    }
+
+    // ★ PERBAIKAN: Watch reader section visibility
+    function setupVisibilityWatch() {
+        // Check every 2 seconds if reader is visible
+        setInterval(function () {
+            var reader = document.getElementById('reader-section');
+            if (!reader) return;
+
+            var isReaderVisible = reader.classList.contains('active') ||
+                                  (reader.style.display !== 'none' && reader.offsetParent !== null);
+
+            if (isReaderVisible) {
+                // Reader is visible, check if we need to start tracking
+                if (!trackingActive) {
+                    var chNumEl = document.getElementById('chapter-number');
+                    if (chNumEl) {
+                        var text = chNumEl.textContent || '';
+                        var match = text.match(/(\d+)/);
+                        if (match) {
+                            var chNum = parseInt(match[1]);
+                            if (!isNaN(chNum) && chNum >= 1 && chNum <= 23) {
+                                startTracking(chNum);
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Reader not visible, stop tracking
+                if (trackingActive) {
+                    stopTracking();
+                }
+            }
+        }, 2000);
+    }
+
+    // ========== PAGE VISIBILITY ==========
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
-            stopTracking();
-        } else if (currentReadingChapter) {
-            startTracking(currentReadingChapter);
+            if (trackingActive) {
+                stopTracking();
+            }
+        } else {
+            // Resume if reader is open
+            var reader = document.getElementById('reader-section');
+            if (reader && (reader.classList.contains('active') || reader.style.display === 'block')) {
+                var chNumEl = document.getElementById('chapter-number');
+                if (chNumEl) {
+                    var text = chNumEl.textContent || '';
+                    var match = text.match(/(\d+)/);
+                    if (match) {
+                        startTracking(parseInt(match[1]));
+                    }
+                }
+            }
         }
     });
 
-    // Track on page unload
+    // ========== BEFORE UNLOAD ==========
     window.addEventListener('beforeunload', function () {
         stopTracking();
     });
@@ -3440,6 +3509,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         loadStats();
 
+        // Bind events
         if (btnOpen) btnOpen.addEventListener('click', openStats);
         if (btnClose) btnClose.addEventListener('click', closeStats);
         if (overlayEl) overlayEl.addEventListener('click', closeStats);
@@ -3449,14 +3519,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.key === 'Escape' && isOpen) closeStats();
         });
 
-        // Auto-start tracking if reader is already open
-        var lastRead = parseInt(localStorage.getItem('kabut_lastread'));
-        var readerSection = document.getElementById('reader-section');
-        if (lastRead && readerSection && readerSection.classList.contains('active')) {
-            startTracking(lastRead + 1);
-        }
+        // Setup watchers
+        setupObserver();
+        setupVisibilityWatch();
     }
 
+    // ========== START ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
