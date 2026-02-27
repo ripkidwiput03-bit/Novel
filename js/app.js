@@ -2469,3 +2469,459 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 })();
+// ============================================================
+// GLOSSARY — Glosarium Istilah Novel
+// ============================================================
+
+(function () {
+
+    // ★★★ DATA GLOSARIUM ★★★
+    var glossaryData = [
+        // === BAHASA PORTUGIS ===
+        {
+            word: "Saudade",
+            pronounce: "/saw-DAH-deh/",
+            category: "bahasa",
+            definition: "Perasaan rindu yang mendalam terhadap sesuatu atau seseorang yang hilang. Bukan sekadar rindu — tapi rindu yang bercampur dengan kesadaran bahwa apa yang dirindukan mungkin tidak akan pernah kembali.",
+            context: "\"Saudade bukan soal kehilangan. Saudade adalah soal mencintai sesuatu yang sudah tidak ada, dan tetap mencintainya.\"",
+            chapter: "Muncul pertama di Chapter 3"
+        },
+        {
+            word: "Obrigado / Obrigada",
+            pronounce: "/oh-bree-GAH-doo/",
+            category: "bahasa",
+            definition: "Terima kasih dalam bahasa Portugis. 'Obrigado' diucapkan oleh laki-laki, 'Obrigada' oleh perempuan.",
+            context: "",
+            chapter: "Digunakan sepanjang novel"
+        },
+        {
+            word: "Desculpe",
+            pronounce: "/desh-KOOL-peh/",
+            category: "bahasa",
+            definition: "Maaf / permisi dalam bahasa Portugis. Kata pertama yang Arka pelajari sebelum tiba di Porto.",
+            context: "\"Desculpe,\" kata Arka. Satu-satunya kata Portugis yang dia hapal dari buku panduan murahan.",
+            chapter: "Chapter 1"
+        },
+        {
+            word: "Boa noite",
+            pronounce: "/BOH-ah NOY-teh/",
+            category: "bahasa",
+            definition: "Selamat malam dalam bahasa Portugis.",
+            context: "",
+            chapter: "Chapter 6"
+        },
+        {
+            word: "Amor",
+            pronounce: "/ah-MOR/",
+            category: "bahasa",
+            definition: "Cinta dalam bahasa Portugis.",
+            context: "",
+            chapter: "Chapter 5"
+        },
+        {
+            word: "Mentira",
+            pronounce: "/men-TEE-rah/",
+            category: "bahasa",
+            definition: "Kebohongan dalam bahasa Portugis. Salah satu kata kunci dalam misteri novel ini.",
+            context: "",
+            chapter: "Chapter 13"
+        },
+        {
+            word: "Verdade",
+            pronounce: "/ver-DAH-deh/",
+            category: "bahasa",
+            definition: "Kebenaran dalam bahasa Portugis. Berlawanan dengan 'mentira'.",
+            context: "",
+            chapter: "Chapter 13"
+        },
+
+        // === TEMPAT ===
+        {
+            word: "Porto",
+            pronounce: "/POR-too/",
+            category: "tempat",
+            definition: "Kota tua di utara Portugal, di tepi Sungai Douro. Terkenal dengan port wine, jembatan besi Dom Luís I, dan distrik bersejarah Ribeira. Tempat Arka belajar seni dan bertemu Inês.",
+            context: "\"Porto. Kota tua di mulut Sungai Douro. Kota yang lahir dari anggur dan pelabuhan.\"",
+            chapter: "Bagian 1 (Chapter 1-7)"
+        },
+        {
+            word: "Ribeira",
+            pronounce: "/ree-BAY-rah/",
+            category: "tempat",
+            definition: "Distrik bersejarah di tepi Sungai Douro, Porto. Situs Warisan Dunia UNESCO. Penuh dengan bangunan warna-warni, kafe, dan galeri seni. Tempat galeri Inês berada.",
+            context: "",
+            chapter: "Chapter 2, 6"
+        },
+        {
+            word: "Sungai Douro",
+            pronounce: "/DOO-roo/",
+            category: "tempat",
+            definition: "Sungai utama yang mengalir melalui Porto menuju Samudra Atlantik. Arka sering berjalan malam di sepanjang tepiannya.",
+            context: "\"Punya kebiasaan jalan kaki malam-malam di sepanjang tepian Sungai Douro sambil ngerokok kretek.\"",
+            chapter: "Chapter 1, 6, 15"
+        },
+        {
+            word: "Sintra",
+            pronounce: "/SEEN-trah/",
+            category: "tempat",
+            definition: "Kota kecil berkabut di atas bukit, sekitar 30 km dari Lisboa. Penuh kastil, istana, dan hutan pinus yang misterius. Tempat kelahiran Inês dan tempat Helena tinggal.",
+            context: "",
+            chapter: "Bagian 2 (Chapter 8-11)"
+        },
+        {
+            word: "Lisboa / Lisbon",
+            pronounce: "/leezh-BOH-ah/",
+            category: "tempat",
+            definition: "Ibukota Portugal. Kota yang hidup dengan trem kuning, musik fado, dan tujuh bukit. Tempat Rafael muncul dan konfrontasi terjadi.",
+            context: "",
+            chapter: "Bagian 3 (Chapter 12-18)"
+        },
+        {
+            word: "Bruges",
+            pronounce: "/BROOZH/",
+            category: "tempat",
+            definition: "Kota kecil di Belgia yang dijuluki 'Venice of the North'. Penuh kanal, jembatan batu, dan ketenangan. Tempat pengungkapan misteri besar di akhir cerita.",
+            context: "",
+            chapter: "Bagian 4 (Chapter 19-23)"
+        },
+        {
+            word: "Estação de São Bento",
+            pronounce: "/esh-tah-SOWNG deh sowng BEN-too/",
+            category: "tempat",
+            definition: "Stasiun kereta utama di Porto, terkenal dengan dinding interior yang dihiasi ubin azulejo biru-putih yang menggambarkan sejarah Portugal.",
+            context: "\"Arka berdiri di depan Estação de São Bento dengan ransel besar di punggung.\"",
+            chapter: "Chapter 1"
+        },
+
+        // === BUDAYA ===
+        {
+            word: "Fado",
+            pronounce: "/FAH-doo/",
+            category: "budaya",
+            definition: "Genre musik tradisional Portugal yang penuh melankoli dan kerinduan. Biasanya diiringi gitar Portugis. Sering dinyanyikan di kafe-kafe kecil di Lisboa dan Porto. Mengekspresikan saudade.",
+            context: "",
+            chapter: "Chapter 6"
+        },
+        {
+            word: "Azulejo",
+            pronounce: "/ah-zoo-LAY-zhoo/",
+            category: "budaya",
+            definition: "Ubin keramik dekoratif khas Portugal, biasanya berwarna biru dan putih. Menghiasi fasad bangunan, gereja, dan stasiun kereta di seluruh Portugal.",
+            context: "",
+            chapter: "Chapter 1"
+        },
+        {
+            word: "Port Wine",
+            pronounce: "/port wayn/",
+            category: "budaya",
+            definition: "Anggur manis khas Porto, Portugal. Diproduksi di lembah Douro dan disimpan di gudang-gudang di Vila Nova de Gaia, seberang sungai dari Porto. Simbol kota ini.",
+            context: "",
+            chapter: "Chapter 3"
+        },
+        {
+            word: "Dom Luís I",
+            pronounce: "/dong loo-EESH/",
+            category: "budaya",
+            definition: "Jembatan besi ikonik di Porto yang dirancang oleh murid Gustave Eiffel. Menghubungkan Porto dengan Vila Nova de Gaia melintasi Sungai Douro.",
+            context: "",
+            chapter: "Chapter 1, 6"
+        },
+        {
+            word: "Kretek",
+            pronounce: "/KREH-tek/",
+            category: "budaya",
+            definition: "Rokok cengkeh khas Indonesia. Arka membawa satu slop Gudang Garam Surya dari Bandung — satu-satunya koneksi fisiknya dengan rumah.",
+            context: "\"Dia menyalakan sebatang kretek. Gudang Garam Surya, yang dia bawa satu slop penuh dari Bandung.\"",
+            chapter: "Chapter 1, 15"
+        },
+
+        // === KULINER ===
+        {
+            word: "Pastel de Nata",
+            pronounce: "/pash-TEL deh NAH-tah/",
+            category: "makanan",
+            definition: "Kue tart telur khas Portugal dengan kulit pastry yang renyah dan isian custard yang creamy. Biasanya ditaburi kayu manis dan gula bubuk.",
+            context: "",
+            chapter: "Chapter 3"
+        },
+        {
+            word: "Francesinha",
+            pronounce: "/fran-seh-SEEN-yah/",
+            category: "makanan",
+            definition: "Sandwich khas Porto yang berisi daging, sosis, dan ham, ditutup keju leleh dan saus tomat-bir pedas. Makanan ikonik Porto.",
+            context: "",
+            chapter: "Chapter 4"
+        },
+        {
+            word: "Bacalhau",
+            pronounce: "/bah-kah-LYOW/",
+            category: "makanan",
+            definition: "Ikan cod kering asin, makanan nasional Portugal. Konon ada 365 cara memasak bacalhau — satu untuk setiap hari dalam setahun.",
+            context: "",
+            chapter: "Chapter 6"
+        },
+        {
+            word: "Vinho Verde",
+            pronounce: "/VEEN-yoo VER-deh/",
+            category: "makanan",
+            definition: "Anggur muda khas Portugal utara, sedikit bersoda, ringan dan segar. 'Verde' berarti hijau/muda, merujuk pada usia anggurnya.",
+            context: "",
+            chapter: "Chapter 3"
+        },
+
+        // === KARAKTER ===
+        {
+            word: "Anting Bulan Sabit",
+            pronounce: "",
+            category: "karakter",
+            definition: "Anting perak kecil berbentuk bulan sabit yang selalu dipakai Inês. Detail kecil yang ternyata menyimpan signifikansi besar dalam misteri novel.",
+            context: "\"Rambut gelap, selalu pakai anting perak kecil berbentuk bulan sabit.\"",
+            chapter: "Chapter 5"
+        },
+        {
+            word: "Álvaro Mendes",
+            pronounce: "/AL-vah-roo MEN-desh/",
+            category: "karakter",
+            definition: "Seniman terkenal Portugal yang menghilang secara misterius tujuh tahun sebelum cerita dimulai (1993). Lukisan-lukisannya menyimpan pesan tersembunyi yang menjadi kunci seluruh misteri.",
+            context: "",
+            chapter: "Chapter 11, 21"
+        },
+        {
+            word: "Universidade do Porto",
+            pronounce: "/oo-nee-ver-see-DAH-deh doo POR-too/",
+            category: "karakter",
+            definition: "Universitas tempat Arka belajar seni rupa. Salah satu universitas tertua dan terbaik di Portugal.",
+            context: "",
+            chapter: "Chapter 1"
+        }
+    ];
+
+    // ========== STATE ==========
+    var isOpen = false;
+    var currentFilter = 'all';
+    var searchQuery = '';
+
+    // ========== DOM ==========
+    var btnOpen = null;
+    var panelEl = null;
+    var overlayEl = null;
+    var btnClose = null;
+    var searchInput = null;
+    var searchClear = null;
+    var listEl = null;
+    var countEl = null;
+
+    // ========== OPEN / CLOSE ==========
+    function openGlossary() {
+        if (panelEl) panelEl.classList.add('open');
+        if (overlayEl) overlayEl.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        isOpen = true;
+
+        // Focus search
+        setTimeout(function () {
+            if (searchInput) searchInput.focus();
+        }, 400);
+    }
+
+    function closeGlossary() {
+        if (panelEl) panelEl.classList.remove('open');
+        if (overlayEl) overlayEl.classList.remove('open');
+        document.body.style.overflow = '';
+        isOpen = false;
+    }
+
+    // ========== RENDER LIST ==========
+    function renderList() {
+        if (!listEl) return;
+
+        // Filter data
+        var filtered = glossaryData.filter(function (item) {
+            // Category filter
+            if (currentFilter !== 'all' && item.category !== currentFilter) return false;
+
+            // Search filter
+            if (searchQuery) {
+                var q = searchQuery.toLowerCase();
+                return (
+                    item.word.toLowerCase().indexOf(q) !== -1 ||
+                    item.definition.toLowerCase().indexOf(q) !== -1 ||
+                    item.category.toLowerCase().indexOf(q) !== -1
+                );
+            }
+
+            return true;
+        });
+
+        // Sort alphabetically
+        filtered.sort(function (a, b) {
+            return a.word.localeCompare(b.word);
+        });
+
+        // Update count
+        if (countEl) {
+            countEl.textContent = filtered.length + ' istilah';
+        }
+
+        // No results
+        if (filtered.length === 0) {
+            listEl.innerHTML =
+                '<div class="glossary-no-results">' +
+                    '<span class="glossary-no-results-icon">🔍</span>' +
+                    '<p class="glossary-no-results-text">Tidak ada istilah yang cocok</p>' +
+                '</div>';
+            return;
+        }
+
+        // Group by letter
+        var groups = {};
+        filtered.forEach(function (item) {
+            var letter = item.word.charAt(0).toUpperCase();
+            // Handle special characters
+            if (letter === 'Á' || letter === 'À' || letter === 'Ã') letter = 'A';
+            if (!groups[letter]) groups[letter] = [];
+            groups[letter].push(item);
+        });
+
+        // Build HTML
+        var html = '';
+        var letters = Object.keys(groups).sort();
+
+        letters.forEach(function (letter) {
+            html += '<div class="glossary-letter-group">';
+            html += '<h3 class="glossary-letter">' + letter + '</h3>';
+
+            groups[letter].forEach(function (item, idx) {
+                var id = 'glossary-' + letter + '-' + idx;
+                var categoryLabels = {
+                    bahasa: 'Bahasa',
+                    tempat: 'Tempat',
+                    budaya: 'Budaya',
+                    makanan: 'Kuliner',
+                    karakter: 'Karakter'
+                };
+
+                html += '<div class="glossary-item" data-id="' + id + '">';
+
+                // Header
+                html += '<div class="glossary-item-header">';
+                html += '<span class="glossary-item-word">' + item.word + '</span>';
+                html += '<span class="glossary-item-category">' + (categoryLabels[item.category] || item.category) + '</span>';
+                html += '</div>';
+
+                // Pronunciation
+                if (item.pronounce) {
+                    html += '<span class="glossary-item-pronounce">' + item.pronounce + '</span>';
+                }
+
+                // Definition
+                html += '<p class="glossary-item-def">' + item.definition + '</p>';
+
+                // Expandable detail
+                if (item.context || item.chapter) {
+                    html += '<div class="glossary-item-detail">';
+                    if (item.context) {
+                        html += '<p class="glossary-item-context">' + item.context + '</p>';
+                    }
+                    if (item.chapter) {
+                        html += '<span class="glossary-item-chapter">📍 ' + item.chapter + '</span>';
+                    }
+                    html += '</div>';
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+        });
+
+        listEl.innerHTML = html;
+
+        // Bind click to expand
+        listEl.querySelectorAll('.glossary-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                // Close others
+                listEl.querySelectorAll('.glossary-item.expanded').forEach(function (other) {
+                    if (other !== item) other.classList.remove('expanded');
+                });
+                item.classList.toggle('expanded');
+            });
+        });
+    }
+
+    // ========== BIND EVENTS ==========
+    function bindEvents() {
+        // Open button
+        if (btnOpen) btnOpen.addEventListener('click', openGlossary);
+
+        // Close
+        if (btnClose) btnClose.addEventListener('click', closeGlossary);
+        if (overlayEl) overlayEl.addEventListener('click', closeGlossary);
+
+        // ESC
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) closeGlossary();
+        });
+
+        // Search
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                searchQuery = this.value.trim();
+                if (searchClear) {
+                    searchClear.classList.toggle('visible', searchQuery.length > 0);
+                }
+                renderList();
+            });
+        }
+
+        // Search clear
+        if (searchClear) {
+            searchClear.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                searchQuery = '';
+                this.classList.remove('visible');
+                renderList();
+                if (searchInput) searchInput.focus();
+            });
+        }
+
+        // Category filters
+        document.querySelectorAll('.glossary-filter-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                currentFilter = this.getAttribute('data-category');
+
+                document.querySelectorAll('.glossary-filter-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                renderList();
+            });
+        });
+    }
+
+    // ========== INIT ==========
+    function init() {
+        btnOpen = document.getElementById('btn-glossary');
+        panelEl = document.getElementById('glossary-panel');
+        overlayEl = document.getElementById('glossary-overlay');
+        btnClose = document.getElementById('glossary-close');
+        searchInput = document.getElementById('glossary-search');
+        searchClear = document.getElementById('glossary-search-clear');
+        listEl = document.getElementById('glossary-list');
+        countEl = document.getElementById('glossary-count');
+
+        if (!panelEl) return;
+
+        renderList();
+        bindEvents();
+    }
+
+    // ========== START ==========
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
