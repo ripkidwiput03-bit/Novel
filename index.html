@@ -39,6 +39,9 @@
                 <button class="nav-btn" id="btn-theme" title="Mode Gelap/Terang">
                     <span id="theme-icon">🌙</span>
                 </button>
+             <button class="nav-btn" id="btn-glossary" title="Glosarium">
+        <span>📖</span>
+                  </button>
                 <button class="nav-btn" id="btn-toc" title="Daftar Isi">☰</button>
             </div>
         </div>
@@ -707,6 +710,49 @@
     </div>
 
 </div>
+    <!-- ===== GLOSSARY PANEL ===== -->
+<div class="glossary-overlay" id="glossary-overlay"></div>
+<aside class="glossary-panel" id="glossary-panel">
+
+    <!-- Header -->
+    <div class="glossary-header">
+        <div class="glossary-header-top">
+            <h2 class="glossary-title">📖 Glosarium</h2>
+            <button class="glossary-close" id="glossary-close">✕</button>
+        </div>
+        <p class="glossary-subtitle">Istilah, tempat, dan referensi dalam novel</p>
+
+        <!-- Search -->
+        <div class="glossary-search">
+            <span class="glossary-search-icon">🔍</span>
+            <input type="text" class="glossary-search-input" id="glossary-search" 
+                   placeholder="Cari istilah..." autocomplete="off">
+            <button class="glossary-search-clear" id="glossary-search-clear">✕</button>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="glossary-filters" id="glossary-filters">
+            <button class="glossary-filter-btn active" data-category="all">Semua</button>
+            <button class="glossary-filter-btn" data-category="bahasa">Bahasa</button>
+            <button class="glossary-filter-btn" data-category="tempat">Tempat</button>
+            <button class="glossary-filter-btn" data-category="budaya">Budaya</button>
+            <button class="glossary-filter-btn" data-category="makanan">Kuliner</button>
+            <button class="glossary-filter-btn" data-category="karakter">Karakter</button>
+        </div>
+    </div>
+
+    <!-- Glossary List -->
+    <div class="glossary-list" id="glossary-list">
+        <!-- Di-generate oleh JavaScript -->
+    </div>
+
+    <!-- Footer -->
+    <div class="glossary-footer">
+        <span class="glossary-count" id="glossary-count">0 istilah</span>
+    </div>
+
+</aside>
+<!-- ===== END GLOSSARY ===== -->
 <!-- ===== END FONT PICKER ===== -->
     <!-- FOOTER -->
       <footer id="main-footer">
