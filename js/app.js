@@ -2925,3 +2925,542 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 })();
+
+// ============================================================
+// READING STATISTICS
+// ============================================================
+
+(function () {
+
+    // ========== STORAGE KEY ==========
+    var STORAGE_KEY = 'kabut_reading_stats';
+
+    // ========== DEFAULT DATA ==========
+    function getDefaultStats() {
+        return {
+            chaptersRead: {},       // { "1": { time: 300, date: "2025-06-29", words: 2000 } }
+            dailyMinutes: {},       // { "2025-06-29": 15 }
+            totalSeconds: 0,
+            currentStreak: 0,
+            bestStreak: 0,
+            lastReadDate: null,
+            sessionStart: null
+        };
+    }
+
+    // ========== STATE ==========
+    var stats = getDefaultStats();
+    var sessionTimer = null;
+    var sessionSeconds = 0;
+    var currentReadingChapter = null;
+    var isOpen = false;
+
+    // Chapter word counts (approximate)
+    var chapterWords = {
+        1: 2000, 2: 2200, 3: 1800, 4: 2100, 5: 1900,
+        6: 2300, 7: 1700, 8: 2400, 9: 2000, 10: 2100,
+        11: 1800, 12: 2200, 13: 2500, 14: 1900, 15: 2000,
+        16: 2100, 17: 2300, 18: 1800, 19: 2000, 20: 2200,
+        21: 2400, 22: 2100, 23: 2500
+    };
+
+    var chapterTitles = {
+        1: "Sungai yang Tidak Pernah Diam", 2: "Perempuan di Balik Kanvas",
+        3: "Port Wine dan Percakapan yang Belum Selesai", 4: "Warna yang Tidak Bisa Dinamai",
+        5: "Anting Bulan Sabit", 6: "Malam-Malam di Ribeira",
+        7: "Surat dari Amsterdam", 8: "Rumah di Ujung Hutan",
+        9: "Helena", 10: "Lukisan yang Seharusnya Tidak Ada",
+        11: "Álvaro", 12: "Orang Asing dari Lisboa",
+        13: "Dua Versi Kebenaran", 14: "Retak",
+        15: "Kretek Terakhir di Tepi Douro", 16: "Kabut Sintra",
+        17: "Konfrontasi", 18: "Yang Tidak Dikatakan Sari",
+        19: "Kereta ke Utara", 20: "Bruges",
+        21: "Lukisan Terakhir Álvaro Mendes", 22: "Pilihan",
+        23: "Epilog — Pelabuhan Lama"
+    };
+
+    // ========== DOM ==========
+    var btnOpen = null;
+    var panelEl = null;
+    var overlayEl = null;
+    var btnClose = null;
+    var btnReset = null;
+
+    // ========== LOAD / SAVE ==========
+    function loadStats() {
+        try {
+            var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved) {
+                stats = Object.assign(getDefaultStats(), saved);
+            }
+        } catch (e) {
+            stats = getDefaultStats();
+        }
+    }
+
+    function saveStats() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+        } catch (e) {}
+    }
+
+    // ========== DATE UTILS ==========
+    function getToday() {
+        var d = new Date();
+        return d.getFullYear() + '-' +
+            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0');
+    }
+
+    function getDayName(dateStr) {
+        var days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        var d = new Date(dateStr);
+        return days[d.getDay()];
+    }
+
+    function formatMinutes(totalSeconds) {
+        var mins = Math.floor(totalSeconds / 60);
+        if (mins < 60) return mins + 'm';
+        var hours = Math.floor(mins / 60);
+        var remainMins = mins % 60;
+        if (remainMins === 0) return hours + 'j';
+        return hours + 'j ' + remainMins + 'm';
+    }
+
+    // ========== STREAK CALCULATION ==========
+    function updateStreak() {
+        var today = getToday();
+
+        if (!stats.lastReadDate) {
+            stats.currentStreak = 1;
+            stats.bestStreak = 1;
+            stats.lastReadDate = today;
+            return;
+        }
+
+        if (stats.lastReadDate === today) return;
+
+        var lastDate = new Date(stats.lastReadDate);
+        var todayDate = new Date(today);
+        var diffDays = Math.floor((todayDate - lastDate) / 86400000);
+
+        if (diffDays === 1) {
+            stats.currentStreak++;
+        } else if (diffDays > 1) {
+            stats.currentStreak = 1;
+        }
+
+        if (stats.currentStreak > stats.bestStreak) {
+            stats.bestStreak = stats.currentStreak;
+        }
+
+        stats.lastReadDate = today;
+    }
+
+    // ========== TRACKING ==========
+    function startTracking(chapterNum) {
+        currentReadingChapter = chapterNum;
+        sessionSeconds = 0;
+
+        if (sessionTimer) clearInterval(sessionTimer);
+
+        sessionTimer = setInterval(function () {
+            sessionSeconds++;
+            stats.totalSeconds++;
+
+            // Update daily minutes
+            var today = getToday();
+            if (!stats.dailyMinutes[today]) stats.dailyMinutes[today] = 0;
+
+            // Add 1 second worth of minutes every 60 seconds
+            if (sessionSeconds % 60 === 0) {
+                stats.dailyMinutes[today]++;
+            }
+
+            // Save every 30 seconds
+            if (sessionSeconds % 30 === 0) {
+                saveStats();
+            }
+        }, 1000);
+
+        // Update streak
+        updateStreak();
+
+        // Mark chapter as read
+        if (!stats.chaptersRead[chapterNum]) {
+            stats.chaptersRead[chapterNum] = {
+                time: 0,
+                date: getToday(),
+                words: chapterWords[chapterNum] || 2000
+            };
+        }
+
+        saveStats();
+    }
+
+    function stopTracking() {
+        if (sessionTimer) {
+            clearInterval(sessionTimer);
+            sessionTimer = null;
+        }
+
+        // Save reading time for current chapter
+        if (currentReadingChapter && stats.chaptersRead[currentReadingChapter]) {
+            stats.chaptersRead[currentReadingChapter].time += sessionSeconds;
+        }
+
+        sessionSeconds = 0;
+        saveStats();
+    }
+
+    // ========== RENDER DASHBOARD ==========
+    function renderDashboard() {
+        var chaptersReadCount = Object.keys(stats.chaptersRead).length;
+        var totalChapters = 23;
+
+        // Overview cards
+        var el;
+
+        // Chapters read
+        el = document.getElementById('stat-chapters-read');
+        if (el) el.textContent = chaptersReadCount;
+
+        el = document.getElementById('stat-chapters-total');
+        if (el) el.textContent = 'dari ' + totalChapters + ' chapter';
+
+        // Total time
+        el = document.getElementById('stat-total-time');
+        if (el) el.textContent = formatMinutes(stats.totalSeconds);
+
+        el = document.getElementById('stat-avg-time');
+        if (el) {
+            var avgSecs = chaptersReadCount > 0 ? Math.floor(stats.totalSeconds / chaptersReadCount) : 0;
+            el.textContent = 'rata-rata: ' + formatMinutes(avgSecs) + '/chapter';
+        }
+
+        // Words read
+        var totalWords = 0;
+        Object.keys(stats.chaptersRead).forEach(function (ch) {
+            totalWords += stats.chaptersRead[ch].words || 0;
+        });
+
+        el = document.getElementById('stat-words-read');
+        if (el) el.textContent = totalWords.toLocaleString();
+
+        el = document.getElementById('stat-pages-est');
+        if (el) el.textContent = '± ' + Math.ceil(totalWords / 250) + ' halaman buku';
+
+        // Streak
+        el = document.getElementById('stat-streak');
+        if (el) el.textContent = stats.currentStreak;
+
+        el = document.getElementById('stat-streak-best');
+        if (el) el.textContent = 'terbaik: ' + stats.bestStreak + ' hari';
+
+        // Progress ring
+        var percent = Math.round((chaptersReadCount / totalChapters) * 100);
+        var circumference = 326.73;
+        var offset = circumference - (percent / 100) * circumference;
+
+        el = document.getElementById('stats-ring-fill');
+        if (el) {
+            setTimeout(function () { el.style.strokeDashoffset = offset; }, 100);
+        }
+
+        el = document.getElementById('stats-ring-percent');
+        if (el) el.textContent = percent + '%';
+
+        el = document.getElementById('stat-remaining-chapters');
+        if (el) el.textContent = (totalChapters - chaptersReadCount) + ' chapter tersisa';
+
+        el = document.getElementById('stat-remaining-time');
+        if (el) {
+            var avgMins = chaptersReadCount > 0 ? Math.floor(stats.totalSeconds / 60 / chaptersReadCount) : 8;
+            var remaining = (totalChapters - chaptersReadCount) * avgMins;
+            el.textContent = '± ' + formatMinutes(remaining * 60) + ' lagi';
+        }
+
+        // History
+        renderHistory();
+
+        // Heatmap
+        renderHeatmap();
+
+        // Favorite chapter
+        renderFavorite();
+
+        // Fun facts
+        renderFacts();
+    }
+
+    // ========== RENDER HISTORY ==========
+    function renderHistory() {
+        var container = document.getElementById('stats-history');
+        if (!container) return;
+
+        var chapters = Object.keys(stats.chaptersRead).sort(function (a, b) {
+            return parseInt(b) - parseInt(a);
+        });
+
+        if (chapters.length === 0) {
+            container.innerHTML = '<div class="stats-empty">Belum ada riwayat membaca</div>';
+            return;
+        }
+
+        var html = '';
+        chapters.forEach(function (ch) {
+            var data = stats.chaptersRead[ch];
+            var title = chapterTitles[ch] || 'Chapter ' + ch;
+
+            html += '<div class="stats-history-item">' +
+                '<span class="stats-history-num">' + ch + '</span>' +
+                '<div class="stats-history-info">' +
+                    '<div class="stats-history-title">' + title + '</div>' +
+                    '<div class="stats-history-meta">' + (data.date || '-') + '</div>' +
+                '</div>' +
+                '<span class="stats-history-time">' + formatMinutes(data.time || 0) + '</span>' +
+            '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    // ========== RENDER HEATMAP ==========
+    function renderHeatmap() {
+        var container = document.getElementById('stats-heatmap');
+        if (!container) return;
+
+        var html = '';
+        var today = new Date();
+
+        for (var i = 6; i >= 0; i--) {
+            var d = new Date(today);
+            d.setDate(d.getDate() - i);
+            var dateStr = d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0');
+
+            var mins = stats.dailyMinutes[dateStr] || 0;
+            var level = 0;
+            if (mins > 0) level = 1;
+            if (mins >= 10) level = 2;
+            if (mins >= 20) level = 3;
+            if (mins >= 40) level = 4;
+
+            var dayName = getDayName(dateStr);
+            var isToday = dateStr === getToday();
+
+            html += '<div class="stats-heatmap-day heatmap-level-' + level + '" ' +
+                'title="' + dayName + ': ' + mins + ' menit"' +
+                (isToday ? ' style="outline: 2px solid rgba(196,168,124,0.3); outline-offset: 2px;"' : '') + '>' +
+                '<span class="heatmap-day-label">' + dayName + '</span>' +
+                '<span class="heatmap-day-value">' + (mins > 0 ? mins + 'm' : '-') + '</span>' +
+            '</div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    // ========== RENDER FAVORITE ==========
+    function renderFavorite() {
+        var container = document.getElementById('stats-favorite');
+        if (!container) return;
+
+        var chapters = Object.keys(stats.chaptersRead);
+        if (chapters.length === 0) {
+            container.innerHTML = '<div class="stats-empty">Belum ada data</div>';
+            return;
+        }
+
+        var maxTime = 0;
+        var favChapter = null;
+
+        chapters.forEach(function (ch) {
+            var time = stats.chaptersRead[ch].time || 0;
+            if (time > maxTime) {
+                maxTime = time;
+                favChapter = ch;
+            }
+        });
+
+        if (!favChapter) {
+            container.innerHTML = '<div class="stats-empty">Belum ada data</div>';
+            return;
+        }
+
+        var title = chapterTitles[favChapter] || 'Chapter ' + favChapter;
+
+        container.innerHTML =
+            '<div class="stats-favorite-item">' +
+                '<div class="stats-favorite-chapter">Ch. ' + favChapter + ' — ' + title + '</div>' +
+                '<div class="stats-favorite-time">⏱ ' + formatMinutes(maxTime) + ' dihabiskan membaca</div>' +
+            '</div>';
+    }
+
+    // ========== RENDER FUN FACTS ==========
+    function renderFacts() {
+        var container = document.getElementById('stats-facts');
+        if (!container) return;
+
+        var chaptersReadCount = Object.keys(stats.chaptersRead).length;
+        var totalMins = Math.floor(stats.totalSeconds / 60);
+        var totalWords = 0;
+
+        Object.keys(stats.chaptersRead).forEach(function (ch) {
+            totalWords += stats.chaptersRead[ch].words || 0;
+        });
+
+        var facts = [];
+
+        if (totalMins > 0) {
+            var coffees = Math.max(1, Math.floor(totalMins / 15));
+            facts.push({
+                icon: '☕',
+                text: 'Kamu sudah menghabiskan waktu setara <span class="stats-fact-highlight">' + coffees + ' cangkir kopi</span> untuk membaca novel ini.'
+            });
+        }
+
+        if (totalWords > 0) {
+            facts.push({
+                icon: '📄',
+                text: 'Total <span class="stats-fact-highlight">' + totalWords.toLocaleString() + ' kata</span> yang sudah kamu baca — setara ' + Math.ceil(totalWords / 250) + ' halaman buku.'
+            });
+        }
+
+        if (chaptersReadCount >= 7) {
+            facts.push({
+                icon: '🌉',
+                text: 'Kamu sudah menemani Arka melewati <span class="stats-fact-highlight">seluruh Porto</span>.'
+            });
+        }
+
+        if (chaptersReadCount >= 11) {
+            facts.push({
+                icon: '🌫️',
+                text: 'Kamu sudah memasuki <span class="stats-fact-highlight">kabut Sintra</span> bersama Arka.'
+            });
+        }
+
+        if (chaptersReadCount >= 18) {
+            facts.push({
+                icon: '🏙️',
+                text: 'Kamu sudah melewati <span class="stats-fact-highlight">konfrontasi di Lisboa</span>.'
+            });
+        }
+
+        if (chaptersReadCount >= 23) {
+            facts.push({
+                icon: '🎉',
+                text: 'Kamu telah menyelesaikan <span class="stats-fact-highlight">seluruh novel</span>! Selamat!'
+            });
+        }
+
+        if (stats.bestStreak >= 3) {
+            facts.push({
+                icon: '🔥',
+                text: 'Streak terbaikmu: <span class="stats-fact-highlight">' + stats.bestStreak + ' hari berturut-turut</span> membaca!'
+            });
+        }
+
+        if (facts.length === 0) {
+            facts.push({
+                icon: '✨',
+                text: 'Mulai membaca untuk melihat fun facts tentang perjalanan bacamu!'
+            });
+        }
+
+        var html = '';
+        facts.forEach(function (fact) {
+            html += '<div class="stats-fact">' +
+                '<span class="stats-fact-icon">' + fact.icon + '</span>' +
+                '<span class="stats-fact-text">' + fact.text + '</span>' +
+            '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    // ========== OPEN / CLOSE ==========
+    function openStats() {
+        renderDashboard();
+        if (panelEl) panelEl.classList.add('open');
+        if (overlayEl) overlayEl.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        isOpen = true;
+    }
+
+    function closeStats() {
+        if (panelEl) panelEl.classList.remove('open');
+        if (overlayEl) overlayEl.classList.remove('open');
+        document.body.style.overflow = '';
+        isOpen = false;
+    }
+
+    function resetStats() {
+        if (!confirm('Yakin ingin menghapus semua statistik membaca?')) return;
+        stats = getDefaultStats();
+        saveStats();
+        renderDashboard();
+    }
+
+    // ========== HOOK INTO CHAPTER LOADING ==========
+    // Listen for chapter opens
+    var originalOpenChapter = window.openChapterByNum;
+    window.openChapterByNum = function (num) {
+        stopTracking();
+        if (typeof originalOpenChapter === 'function') {
+            originalOpenChapter(num);
+        }
+        startTracking(num);
+    };
+
+    // Track on page visibility change
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            stopTracking();
+        } else if (currentReadingChapter) {
+            startTracking(currentReadingChapter);
+        }
+    });
+
+    // Track on page unload
+    window.addEventListener('beforeunload', function () {
+        stopTracking();
+    });
+
+    // ========== INIT ==========
+    function init() {
+        btnOpen = document.getElementById('btn-stats');
+        panelEl = document.getElementById('stats-panel');
+        overlayEl = document.getElementById('stats-overlay');
+        btnClose = document.getElementById('stats-close');
+        btnReset = document.getElementById('stats-reset');
+
+        if (!panelEl) return;
+
+        loadStats();
+
+        if (btnOpen) btnOpen.addEventListener('click', openStats);
+        if (btnClose) btnClose.addEventListener('click', closeStats);
+        if (overlayEl) overlayEl.addEventListener('click', closeStats);
+        if (btnReset) btnReset.addEventListener('click', resetStats);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) closeStats();
+        });
+
+        // Auto-start tracking if reader is already open
+        var lastRead = parseInt(localStorage.getItem('kabut_lastread'));
+        var readerSection = document.getElementById('reader-section');
+        if (lastRead && readerSection && readerSection.classList.contains('active')) {
+            startTracking(lastRead + 1);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
