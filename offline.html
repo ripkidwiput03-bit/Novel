@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Offline — Kabut di Pelabuhan Lama</title>
+    <meta name="theme-color" content="#141210">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           OFFLINE PAGE — Kabut di Pelabuhan Lama
+           "Bahkan dalam kegelapan, ada yang menunggu"
+        ========================================= */
+
+        :root {
+            --ink: #e8e0d4;
+            --ink-dim: #a89a8a;
+            --ink-faint: #5a5048;
+            --gold: #c4a87c;
+            --gold-dim: #8b6f4e;
+            --bg: #0d0b08;
+            --bg2: #141210;
+            --bg3: #1e1b17;
+            --fog1: rgba(196,168,124,0.06);
+            --fog2: rgba(139,111,78,0.04);
+            --border: rgba(196,168,124,0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        body {
+            font-family: 'Lora', Georgia, serif;
+            color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* ======= ATMOSPHERIC FOG LAYERS ======= */
+        .fog-layer {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(80px);
+            animation: fogDrift var(--dur, 20s) ease-in-out infinite alternate;
+        }
+
+        .fog-1 {
+            width: 600px; height: 400px;
+            top: -100px; left: -150px;
+            background: radial-gradient(ellipse, rgba(196,168,124,0.08) 0%, transparent 70%);
+            --dur: 25s;
+        }
+
+        .fog-2 {
+            width: 500px; height: 350px;
+            bottom: -80px; right: -100px;
+            background: radial-gradient(ellipse, rgba(139,111,78,0.07) 0%, transparent 70%);
+            --dur: 30s;
+            animation-direction: alternate-reverse;
+        }
+
+        .fog-3 {
+            width: 300px; height: 200px;
+            top: 30%; left: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(ellipse, rgba(196,168,124,0.05) 0%, transparent 70%);
+            --dur: 18s;
+        }
+
+        @keyframes fogDrift {
+            0%   { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            50%  { transform: translate(30px, 20px) scale(1.08); opacity: 1; }
+            100% { transform: translate(-20px, 40px) scale(0.95); opacity: 0.7; }
+        }
+
+        /* ======= NOISE GRAIN OVERLAY ======= */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ======= RIVER ANIMATION (abstract Douro) ======= */
+        .river {
+            position: fixed;
+            bottom: 0;
+            left: 0; right: 0;
+            height: 120px;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .river-wave {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            opacity: 0.04;
+        }
+
+        .river-wave svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .river-wave-1 { animation: waveFlow 12s linear infinite; fill: var(--gold); }
+        .river-wave-2 { animation: waveFlow 18s linear infinite reverse; fill: var(--gold-dim); animation-delay: -6s; }
+
+        @keyframes waveFlow {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ======= FLOATING PARTICLES ======= */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: float var(--fd, 15s) ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10%  { opacity: var(--fo, 0.3); }
+            90%  { opacity: var(--fo, 0.3); }
+            100% { transform: translateY(-20px) translateX(var(--fx, 30px)); opacity: 0; }
+        }
+
+        /* ======= MAIN CONTENT ======= */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem 2rem 3rem;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        /* ======= ICON AREA ======= */
+        .icon-wrapper {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+
+        .icon-glow {
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle, rgba(196,168,124,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50%       { opacity: 1; transform: scale(1.1); }
+        }
+
+        .icon-ring {
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle at 30% 30%, var(--bg3), var(--bg2));
+            box-shadow: 0 0 40px rgba(196,168,124,0.1), inset 0 1px 0 rgba(196,168,124,0.1);
+        }
+
+        .icon-ring::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px solid rgba(196,168,124,0.06);
+        }
+
+        .main-icon {
+            font-size: 2.8rem;
+            line-height: 1;
+            animation: iconFloat 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(196,168,124,0.3));
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-6px); }
+        }
+
+        /* ======= BRAND ======= */
+        .brand {
+            margin-bottom: 2.5rem;
+        }
+
+        .brand-eyebrow {
+            font-family: 'Lora', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            opacity: 0.7;
+            margin-bottom: 0.6rem;
+        }
+
+        .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.4rem, 5vw, 1.8rem);
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.3rem;
+        }
+
+        .brand-tagline {
+            font-family: 'Lora', serif;
+            font-size: 0.75rem;
+            color: var(--ink-dim);
+            font-style: italic;
+        }
+
+        /* ======= DIVIDER ======= */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+            opacity: 0.3;
+        }
+
+        .divider-icon {
+            color: var(--gold);
+            font-size: 1rem;
+            opacity: 0.5;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        /* ======= STATUS ======= */
+        .status-card {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            background: rgba(30, 27, 23, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            margin-bottom: 2rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239,68,68,0.6);
+            animation: dotPulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34,197,94,0.6);
+            animation: none;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .status-text {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-dim);
+        }
+
+        .status-message {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--ink);
+            margin-bottom: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .status-submessage {
+            font-size: 0.82rem;
+            color: var(--ink-faint);
+            line-height: 1.6;
+        }
+
+        /* ======= CACHED CONTENT BADGE ======= */
+        .cached-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.8rem;
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 999px;
+            background: rgba(34,197,94,0.06);
+            font-size: 0.7rem;
+            color: #86efac;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+        }
+
+        .cached-badge-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        /* ======= ACTION BUTTONS ======= */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+            border: none;
+            border-radius: 10px;
+            font-family: 'Lora', serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #0d0b08;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(196,168,124,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 30px rgba(196,168,124,0.35);
+        }
+        .btn-primary:hover::after { opacity: 1; }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Lora', serif;
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(196,168,124,0.3);
+            color: var(--ink);
+            background: rgba(196,168,124,0.04);
+        }
+
+        /* ======= OFFLINE CHAPTER HINT ======= */
+        .offline-hint {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(196,168,124,0.08);
+            border-radius: 12px;
+            background: rgba(14,12,10,0.5);
+        }
+
+        .offline-hint-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .offline-hint-text {
+            font-size: 0.8rem;
+            color: var(--ink-faint);
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* ======= QUOTE ======= */
+        .quote-block {
+            margin-top: auto;
+            padding-top: 2rem;
+            max-width: 340px;
+        }
+
+        .quote-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--ink-faint);
+            line-height: 1.7;
+        }
+
+        .quote-author {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--gold-dim);
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        /* ======= RETRY ANIMATION ======= */
+        .retry-spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 1.5px solid rgba(13,11,8,0.3);
+            border-top-color: rgba(13,11,8,0.8);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ======= ONLINE RESTORATION ======= */
+        .back-online-banner {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: linear-gradient(135deg, #065f46, #022c22);
+            border-bottom: 1px solid rgba(34,197,94,0.2);
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transform: translateY(-100%);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 100;
+        }
+
+        .back-online-banner.show { transform: translateY(0); }
+
+        .back-online-text {
+            font-size: 0.85rem;
+            color: #86efac;
+        }
+
+        .back-online-btn {
+            padding: 0.3rem 0.8rem;
+            background: #22c55e;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Lora', serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #022c22;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .back-online-btn:hover { background: #86efac; }
+
+        /* ======= RESPONSIVE ======= */
+        @media (max-width: 360px) {
+            .brand-title { font-size: 1.3rem; }
+            .status-message { font-size: 1rem; }
+            .container { padding: 1.5rem 1.25rem 2rem; }
+        }
+
+        @media (min-height: 700px) {
+            .container { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Back Online Banner -->
+    <div class="back-online-banner" id="back-online-banner">
+        <span>🟢</span>
+        <span class="back-online-text">Koneksi kembali tersedia!</span>
+        <button class="back-online-btn" id="btn-reload">Muat Ulang</button>
+    </div>
+
+    <!-- Atmospheric Layers -->
+    <div class="fog-layer fog-1"></div>
+    <div class="fog-layer fog-2"></div>
+    <div class="fog-layer fog-3"></div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- River Bottom -->
+    <div class="river">
+        <div class="river-wave river-wave-1">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,60 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z" fill-opacity="1"/>
+            </svg>
+        </div>
+        <div class="river-wave river-wave-2">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,40 C300,80 600,10 900,50 C1050,70 1150,30 1200,40 L1200,120 L0,120 Z" fill-opacity="1"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Icon -->
+        <div class="icon-wrapper">
+            <div class="icon-glow"></div>
+            <div class="icon-ring">
+                <span class="main-icon">☁</span>
+            </div>
+        </div>
+
+        <!-- Brand -->
+        <div class="brand">
+            <p class="brand-eyebrow">Novel Digital</p>
+            <h1 class="brand-title">Kabut di Pelabuhan Lama</h1>
+            <p class="brand-tagline">Porto · Sintra · Lisboa · Bruges · 2000–2001</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+            <span class="divider-line"></span>
+            <span class="divider-icon">⊹</span>
+            <span class="divider-line"></span>
+        </div>
+
+        <!-- Status Card -->
+        <div class="status-card">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span class="status-text" id="status-text">Tidak terhubung ke internet</span>
+            </div>
+
+            <p class="status-message" id="status-message">
+                Porto saat ini tertutup kabut.<br>Koneksimu sedang terputus.
+            </p>
+
+            <p class="status-submessage" id="status-submessage">
+                Jangan khawatir — chapter yang pernah kamu buka sebelumnya<br>
+                masih tersimpan dan bisa dibaca tanpa internet.
+            </p>
+
+            <div class="cached-badge" id="cached-badge" style="display:none">
+                <span class="cached-badge-dot"></span>
+                <span id="cached-badge-text">— chapter tersimpan di perangkat</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn-primary" id="btn-open-cached" style="display:none">
+                <span>📖</span>
+                <span>Baca Chapter Tersimpan</span>
+            </button>
+
+            <button class="btn-primary" id="btn-retry">
+                <span id="retry-icon">↺</span>
+                <span id="retry-text">Coba Lagi</span>
+            </button>
+
+            <button class="btn-secondary" id="btn-home">
+                <span>🏠</span>
+                <span>Kembali ke Beranda</span>
+            </button>
+        </div>
+
+        <!-- Offline Hint -->
+        <div class="offline-hint">
+            <p class="offline-hint-title">💡 Tips Offline</p>
+            <p class="offline-hint-text">
+                Saat online, buka chapter lebih dulu agar tersimpan untuk dibaca offline. 
+                Setiap chapter yang kamu buka akan otomatis ter-cache di perangkatmu.
+            </p>
+        </div>
+
+        <!-- Quote -->
+        <div class="quote-block">
+            <p class="quote-text">
+                "Sungai itu tidak pernah diam, bahkan ketika dunia di sekitarnya berhenti bergerak."
+            </p>
+            <span class="quote-author">— Arka Wisesa, Porto 2000</span>
+        </div>
+
+    </div>
+
+    <script>
+    // ============================================================
+    // OFFLINE PAGE — Logic & Interactivity
+    // ============================================================
+
+    (function() {
+        'use strict';
+
+        var statusDot = document.getElementById('status-dot');
+        var statusText = document.getElementById('status-text');
+        var statusMessage = document.getElementById('status-message');
+        var statusSubmessage = document.getElementById('status-submessage');
+        var cachedBadge = document.getElementById('cached-badge');
+        var cachedBadgeText = document.getElementById('cached-badge-text');
+        var btnOpenCached = document.getElementById('btn-open-cached');
+        var btnRetry = document.getElementById('btn-retry');
+        var btnHome = document.getElementById('btn-home');
+        var retryIcon = document.getElementById('retry-icon');
+        var retryText = document.getElementById('retry-text');
+        var backOnlineBanner = document.getElementById('back-online-banner');
+        var btnReload = document.getElementById('btn-reload');
+
+        var isRetrying = false;
+
+        // -------- PARTICLES --------
+        function createParticles() {
+            var container = document.getElementById('particles');
+            if (!container) return;
+            for (var i = 0; i < 25; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = (Math.random() * 100) + '%';
+                p.style.setProperty('--fd', (12 + Math.random() * 20) + 's');
+                p.style.setProperty('--fo', (0.1 + Math.random() * 0.35) + '');
+                p.style.setProperty('--fx', (Math.random() * 60 - 30) + 'px');
+                p.style.animationDelay = (Math.random() * 20) + 's';
+                p.style.width = (1 + Math.random() * 2) + 'px';
+                p.style.height = p.style.width;
+                container.appendChild(p);
+            }
+        }
+
+        // -------- CHECK CACHED CHAPTERS --------
+        function checkCachedChapters() {
+            if (!('caches' in window)) return;
+
+            caches.open('kabut-v1.0.0').then(function(cache) {
+                return cache.keys();
+            }).then(function(keys) {
+                var chapterCount = keys.filter(function(req) {
+                    return req.url.includes('/chapters/chapter') && req.url.endsWith('.txt');
+                }).length;
+
+                if (chapterCount > 0) {
+                    cachedBadgeText.textContent = chapterCount + ' chapter tersimpan di perangkat';
+                    cachedBadge.style.display = 'inline-flex';
+                    btnOpenCached.style.display = 'flex';
+                }
+            }).catch(function() {
+                // Cache API tidak tersedia
+            });
+        }
+
+        // -------- RETRY --------
+        function doRetry() {
+            if (isRetrying) return;
+            isRetrying = true;
+
+            retryIcon.innerHTML = '<span class="retry-spinner"></span>';
+            retryText.textContent = 'Memeriksa koneksi...';
+            btnRetry.disabled = true;
+
+            // Coba fetch dengan timeout
+            var controller = window.AbortController ? new AbortController() : null;
+            var timeoutId = null;
+
+            var fetchOptions = controller ? { signal: controller.signal } : {};
+
+            if (controller) {
+                timeoutId = setTimeout(function() {
+                    controller.abort();
+                }, 5000);
+            }
+
+            // Ping dengan gambar kecil agar bisa detect koneksi real
+            fetch('https://fonts.gstatic.com/favicon.ico?v=offline-check-' + Date.now(), fetchOptions)
+                .then(function(res) {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (res.ok || res.status === 0) {
+                        onBackOnline();
+                    } else {
+                        onStillOffline();
+                    }
+                })
+                .catch(function() {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    // Coba fallback
+                    fetch('./manifest.json?t=' + Date.now(), fetchOptions)
+                        .then(function() { onBackOnline(); })
+                        .catch(function() { onStillOffline(); });
+                });
+        }
+
+        function onBackOnline() {
+            isRetrying = false;
+            backOnlineBanner.classList.add('show');
+            retryIcon.textContent = '✓';
+            retryText.textContent = 'Terhubung!';
+            btnRetry.style.background = 'linear-gradient(135deg, #065f46, #059669)';
+
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        function onStillOffline() {
+            isRetrying = false;
+            retryIcon.textContent = '↺';
+            retryText.textContent = 'Coba Lagi';
+            btnRetry.disabled = false;
+
+            // Visual feedback
+            statusDot.style.animation = 'none';
+            statusDot.style.background = '#ef4444';
+            setTimeout(function() {
+                statusDot.style.animation = '';
+            }, 100);
+        }
+
+        // -------- EVENT LISTENERS --------
+        btnRetry.addEventListener('click', doRetry);
+
+        btnHome.addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+
+        btnOpenCached.addEventListener('click', function() {
+            window.location.href = 'index.html#lanjut';
+        });
+
+        btnReload.addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+
+        // -------- ONLINE/OFFLINE EVENTS --------
+        window.addEventListener('online', function() {
+            backOnlineBanner.classList.add('show');
+            statusDot.classList.add('online');
+            statusText.textContent = 'Koneksi kembali!';
+            statusMessage.textContent = 'Porto kembali terlihat dari balik kabut.';
+
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 2000);
+        });
+
+        window.addEventListener('offline', function() {
+            statusDot.classList.remove('online');
+            statusText.textContent = 'Tidak terhubung ke internet';
+        });
+
+        // -------- INIT --------
+        createParticles();
+        checkCachedChapters();
+
+        // Auto retry setiap 30 detik
+        var autoRetryInterval = setInterval(function() {
+            if (navigator.onLine) {
+                onBackOnline();
+                clearInterval(autoRetryInterval);
+            }
+        }, 30000);
+
+    })();
+    </script>
+</body>
+</html>

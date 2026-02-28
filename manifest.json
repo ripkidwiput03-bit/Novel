@@ -1,0 +1,66 @@
+{
+  "name": "Kabut di Pelabuhan Lama",
+  "short_name": "Kabut",
+  "description": "Novel online karya Ripki Dwi Putra — Romance, Misteri, Psychological Drama. Porto · Sintra · Lisboa · Bruges · 2000–2001",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141210",
+  "theme_color": "#8b6f4e",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "images/cover.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/cover.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["books", "entertainment", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "images/cover.jpg",
+      "sizes": "540x720",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Cover Novel - Kabut di Pelabuhan Lama"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Lanjut Membaca",
+      "short_name": "Baca",
+      "description": "Lanjutkan chapter terakhir yang dibaca",
+      "url": "./index.html#lanjut",
+      "icons": [
+        {
+          "src": "images/cover.jpg",
+          "sizes": "96x96",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "Daftar Isi",
+      "short_name": "TOC",
+      "description": "Lihat semua chapter",
+      "url": "./index.html#toc",
+      "icons": [
+        {
+          "src": "images/cover.jpg",
+          "sizes": "96x96",
+          "type": "image/jpeg"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

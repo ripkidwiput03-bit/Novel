@@ -1,0 +1,276 @@
+<!-- ============================================================
+     PANDUAN INTEGRASI PWA KE index.html
+     "Kabut di Pelabuhan Lama" — Android Ready
+================================================================
+
+LANGKAH 1: Tambahkan ke dalam <head> ... </head>
+(taruh sebelum </head> atau setelah <link rel="stylesheet" href="css/style.css">)
+
+================================================================ -->
+
+<!-- === TEMPEL INI DI DALAM <head> === -->
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kabut">
+<meta name="application-name" content="Kabut di Pelabuhan Lama">
+<meta name="theme-color" content="#8b6f4e">
+<meta name="msapplication-TileColor" content="#141210">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Apple Touch Icons (pakai cover.jpg) -->
+<link rel="apple-touch-icon" href="images/cover.jpg">
+<link rel="apple-touch-icon" sizes="152x152" href="images/cover.jpg">
+<link rel="apple-touch-icon" sizes="180x180" href="images/cover.jpg">
+<link rel="apple-touch-icon" sizes="167x167" href="images/cover.jpg">
+
+
+<!-- ============================================================
+     LANGKAH 2: Tambahkan SCRIPT INI tepat sebelum </body>
+     (taruh SETELAH <script src="js/app.js"></script>)
+================================================================ -->
+
+<!-- === TEMPEL INI SEBELUM </body> === -->
+
+<script>
+// ============================================================
+// PWA SERVICE WORKER REGISTRATION
+// Kabut di Pelabuhan Lama — Android & PWA Support
+// ============================================================
+(function() {
+    'use strict';
+
+    // ---- Register Service Worker ----
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js', { scope: './' })
+                .then(function(registration) {
+                    console.log('[PWA] SW registered:', registration.scope);
+
+                    // Deteksi update SW tersedia
+                    registration.addEventListener('updatefound', function() {
+                        var newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateToast();
+                            }
+                        });
+                    });
+                })
+                .catch(function(err) {
+                    console.warn('[PWA] SW registration failed:', err);
+                });
+
+            // Handle controller change (setelah update)
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                window.location.reload();
+            });
+        });
+    }
+
+    // ---- Offline / Online Detection ----
+    function handleOffline() {
+        showConnectionToast('offline');
+    }
+
+    function handleOnline() {
+        showConnectionToast('online');
+        // Refresh schedule kalau ada fungsi itu
+        if (typeof window.refreshSchedule === 'function') {
+            window.refreshSchedule();
+        }
+    }
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    // ---- Toast: Update Tersedia ----
+    function showUpdateToast() {
+        var toast = document.createElement('div');
+        toast.style.cssText = [
+            'position:fixed', 'bottom:80px', 'left:50%',
+            'transform:translateX(-50%)', 'z-index:9999',
+            'background:#1e1b17', 'border:1px solid rgba(196,168,124,0.2)',
+            'border-radius:12px', 'padding:1rem 1.25rem',
+            'display:flex', 'align-items:center', 'gap:0.75rem',
+            'box-shadow:0 8px 30px rgba(0,0,0,0.4)',
+            'font-family:Lora,serif', 'font-size:0.85rem',
+            'color:#e8e0d4', 'max-width:90vw',
+            'animation:slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)'
+        ].join(';');
+
+        toast.innerHTML =
+            '<span style="font-size:1.1rem">✨</span>' +
+            '<div><strong>Versi baru tersedia</strong>' +
+            '<br><span style="opacity:0.6;font-size:0.8rem">Muat ulang untuk mendapatkan update</span></div>' +
+            '<button onclick="window.location.reload()" style="' +
+                'padding:0.4rem 0.8rem;background:#c4a87c;border:none;border-radius:6px;' +
+                'font-family:Lora,serif;font-size:0.75rem;font-weight:600;' +
+                'color:#0d0b08;cursor:pointer">Update</button>' +
+            '<button onclick="this.parentElement.remove()" style="' +
+                'background:none;border:none;color:#6e6258;cursor:pointer;font-size:1rem">✕</button>';
+
+        // Tambah animasi CSS kalau belum ada
+        if (!document.getElementById('pwa-toast-style')) {
+            var style = document.createElement('style');
+            style.id = 'pwa-toast-style';
+            style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(toast);
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 12000);
+    }
+
+    // ---- Toast: Koneksi ----
+    function showConnectionToast(type) {
+        // Hindari spam
+        var existing = document.getElementById('connection-toast');
+        if (existing) existing.remove();
+
+        var isOffline = type === 'offline';
+        var toast = document.createElement('div');
+        toast.id = 'connection-toast';
+        toast.style.cssText = [
+            'position:fixed', 'top:70px', 'left:50%',
+            'transform:translateX(-50%)', 'z-index:9999',
+            'border-radius:999px', 'padding:0.5rem 1.2rem',
+            'display:flex', 'align-items:center', 'gap:0.5rem',
+            'font-family:Lora,serif', 'font-size:0.8rem',
+            'box-shadow:0 4px 20px rgba(0,0,0,0.3)',
+            isOffline
+                ? 'background:rgba(220,38,38,0.9);color:#fff;border:1px solid rgba(255,255,255,0.1)'
+                : 'background:rgba(5,150,105,0.9);color:#fff;border:1px solid rgba(255,255,255,0.1)',
+            'animation:fadeInDown 0.3s ease',
+            'pointer-events:none'
+        ].join(';');
+
+        toast.innerHTML = (isOffline
+            ? '<span>📵</span><span>Offline — membaca cache</span>'
+            : '<span>🟢</span><span>Terhubung kembali</span>'
+        );
+
+        if (!document.getElementById('pwa-toast-style')) {
+            var style = document.createElement('style');
+            style.id = 'pwa-toast-style';
+            style.textContent = '@keyframes fadeInDown{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            if (toast.parentNode) toast.remove();
+            // Kalau offline, redirect ke offline.html setelah 4 detik
+            if (isOffline && !navigator.onLine) {
+                // Jangan redirect kalau user sedang baca chapter yang ter-cache
+                // Biarkan app berjalan dulu, offline page hanya untuk fresh load
+            }
+        }, 3500);
+    }
+
+    // ---- Install Prompt (Add to Home Screen) ----
+    var deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // Tampilkan banner install setelah user baca beberapa saat
+        setTimeout(showInstallBanner, 30000); // 30 detik
+    });
+
+    function showInstallBanner() {
+        if (!deferredPrompt) return;
+        // Jangan tampilkan kalau sudah pernah ditolak
+        if (localStorage.getItem('kabut_install_dismissed')) return;
+
+        var banner = document.createElement('div');
+        banner.id = 'install-banner';
+        banner.style.cssText = [
+            'position:fixed', 'bottom:0', 'left:0', 'right:0',
+            'z-index:9999', 'background:#1e1b17',
+            'border-top:1px solid rgba(196,168,124,0.15)',
+            'padding:1rem 1.25rem',
+            'display:flex', 'align-items:center', 'gap:1rem',
+            'box-shadow:0 -4px 20px rgba(0,0,0,0.3)',
+            'animation:slideUpFull 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+            'font-family:Lora,serif'
+        ].join(';');
+
+        banner.innerHTML =
+            '<img src="images/cover.jpg" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0">' +
+            '<div style="flex:1">' +
+                '<div style="font-size:0.85rem;color:#e8e0d4;font-weight:500">Install Kabut di Perangkat</div>' +
+                '<div style="font-size:0.72rem;color:#6e6258;margin-top:0.15rem">Baca offline tanpa browser</div>' +
+            '</div>' +
+            '<button id="install-btn" style="' +
+                'padding:0.45rem 1rem;background:linear-gradient(135deg,#8b6f4e,#c4a87c);' +
+                'border:none;border-radius:8px;font-family:Lora,serif;font-size:0.8rem;' +
+                'font-weight:600;color:#0d0b08;cursor:pointer;flex-shrink:0">Install</button>' +
+            '<button id="install-dismiss" style="' +
+                'background:none;border:none;color:#6e6258;cursor:pointer;' +
+                'font-size:1.1rem;padding:0.25rem;flex-shrink:0">✕</button>';
+
+        if (!document.getElementById('pwa-toast-style')) {
+            var style2 = document.createElement('style');
+            style2.id = 'pwa-toast-style';
+            style2.textContent = '@keyframes slideUpFull{from{transform:translateY(100%)}to{transform:translateY(0)}}';
+            document.head.appendChild(style2);
+        }
+
+        document.body.appendChild(banner);
+
+        document.getElementById('install-btn').addEventListener('click', function() {
+            banner.remove();
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function(result) {
+                if (result.outcome === 'accepted') {
+                    console.log('[PWA] App installed!');
+                }
+                deferredPrompt = null;
+            });
+        });
+
+        document.getElementById('install-dismiss').addEventListener('click', function() {
+            banner.remove();
+            localStorage.setItem('kabut_install_dismissed', '1');
+        });
+    }
+
+    // ---- Handle shortcut: #lanjut & #toc ----
+    window.addEventListener('load', function() {
+        var hash = window.location.hash;
+        if (hash === '#lanjut') {
+            // Buka chapter terakhir
+            var last = parseInt(localStorage.getItem('kabut_lastread') || '0');
+            if (last > 0 && typeof window.openChapterByNum === 'function') {
+                setTimeout(function() { window.openChapterByNum(last); }, 1500);
+            }
+        } else if (hash === '#toc') {
+            // Buka TOC sidebar
+            setTimeout(function() {
+                var btn = document.getElementById('btn-toc');
+                if (btn) btn.click();
+            }, 1500);
+        }
+    });
+
+    // ---- Message dari Service Worker ----
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'OPEN_CHAPTER') {
+                var last = parseInt(localStorage.getItem('kabut_lastread') || '0');
+                if (last > 0 && typeof window.openChapterByNum === 'function') {
+                    window.openChapterByNum(last);
+                }
+            }
+        });
+    }
+
+    console.log('[PWA] Kabut di Pelabuhan Lama — PWA initialized');
+
+})();
+</script>
