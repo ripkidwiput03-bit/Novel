@@ -236,6 +236,9 @@ a:hover {
     gap: 0.6rem;
     cursor: pointer;
     transition: opacity 0.3s;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
 }
 
 .nav-brand:hover {
@@ -251,12 +254,17 @@ a:hover {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .nav-controls {
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    flex-shrink: 0;
 }
 
 .nav-btn {
@@ -1439,10 +1447,74 @@ a:hover {
         min-width: 32px;
         height: 32px;
         font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    .nav-inner {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .nav-controls {
+        gap: 0.25rem;
     }
 
     .reader-inner {
         padding: 60px 20px 100px;
+    }
+}
+
+/* Extra small screens — 400px ke bawah */
+@media (max-width: 400px) {
+    .nav-inner {
+        padding: 0.5rem 0.6rem;
+    }
+
+    .nav-btn {
+        min-width: 30px;
+        height: 30px;
+        font-size: 0.65rem;
+        padding: 0.25rem 0.4rem;
+    }
+
+    .nav-controls {
+        gap: 0.2rem;
+    }
+
+    .nav-title-text {
+        font-size: 0.8rem;
+        max-width: 120px;
+    }
+
+    .nav-icon {
+        font-size: 1.1rem;
+    }
+}
+
+/* Layar sangat kecil — 360px ke bawah */
+@media (max-width: 360px) {
+    .nav-btn {
+        min-width: 28px;
+        height: 28px;
+        font-size: 0.6rem;
+        padding: 0.2rem 0.35rem;
+        border-radius: 5px;
+    }
+
+    .nav-controls {
+        gap: 0.15rem;
+    }
+
+    .nav-title-text {
+        font-size: 0.75rem;
+        max-width: 90px;
+    }
+
+    .nav-icon {
+        font-size: 1rem;
+    }
+
+    .nav-brand {
+        gap: 0.4rem;
     }
 }
 
